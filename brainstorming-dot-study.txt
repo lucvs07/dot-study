@@ -1,0 +1,21 @@
+Plataforma de estudo gamificada -> dot.study
+Uma plataforma gamificada que recompensa o compartilhamento de informações após sessões de estudo.
+- eventos
+- ranqueamento por assunto
+- personalização
+
+Fluxo Idealizado :
+O usuário entra na plataforma, seleciona um campo de assunto como : tecnologia, marketing, economia..., após selecionado o campo nossa plataforma apresenta uma temática aleatória para o usuário começar os estudos. Nesse momento o usuário terá um sistema de pomodoro personalizado a sua disposição, e um bloco de notas para ele anotar os avanços. Por fim, o usuário pode publicar o artigo referente ao que ele estudou.
+
+personalização :
+O personagem do usuário seria um ponto (dot) que teria customização como : cores, chapéus entre outros.
+
+Telas:
+- Feed
+- Perfil
+- Ranking
+- Pomodoro/Estudo
+
+Design :
+-Ilustrações simples que lembrem um caderno de estudos
+-Simples e Limpo
