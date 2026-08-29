@@ -2,7 +2,7 @@
 
 ## Nome
 
-dot.study (marca ".Study" / dotStudy)
+dot.study — em peças de marca externas (Figma, Trello) também aparece estilizado como ".Study" ou "dotStudy"; o nome canônico usado na documentação é sempre "dot.study".
 
 ## Identidade do projeto
 
@@ -21,6 +21,8 @@ Plataforma de estudos com gamificação: combina timer Pomodoro, feed social de 
 | Green | `#2CCD2C` | Sucesso, Programação |
 | Dark | `#111827` | Fundo da nav, texto principal |
 | Off-white | `#FFFFF6` | Background principal (levemente creme) |
+
+> As matérias na coluna "Uso" (Matemática, Física, Português, História, Programação) vêm da referência visual formalizada no Figma. Os assuntos reais do v1 são os definidos em [docs/03-escopo.md](03-escopo.md) (tecnologia, marketing, economia, entre outros). O mecanismo de "cor por assunto" vale para qualquer assunto cadastrado — a implementação do CP5 deve mapear cada assunto real a uma das cores acima (ou estender a paleta), não travar nos nomes de matéria escolar listados.
 
 - Fundos: `#FFFFF6` (light) / `#111827` (dark)
 - Cards: `#FFFEF0` (light) / `#1F2937` (dark)
@@ -43,8 +45,10 @@ Plataforma de estudos com gamificação: combina timer Pomodoro, feed social de 
 
 ## Estrutura de Telas
 
+> As telas abaixo refletem a referência visual do protótipo de alta fidelidade no Figma Make (ver seção Links). Podem incluir elementos além do escopo v1 formal (ex: tema gerado por IA, posts em áudio/vídeo, histórico com gráficos, leaderboard semanal). O contrato de requisitos para o CP5 continua sendo [docs/02-requisitos.md](02-requisitos.md) — qualquer funcionalidade extra aqui é visão de produto, não requisito aprovado, até ser adicionada lá.
+
 - **Dashboard** — resumo do dia, streak, sessões recentes, atalho rápido
-- **Timer** — modo Desafio (sujeito + tema gerado por IA) e modo Livre; fases de trabalho, pausa e publicação
+- **Timer** — modo Guiado (assunto + tema sugerido, RF01/RF02) e modo Livre; fases de trabalho, pausa e publicação. *(Não confundir com o "sistema de eventos" fora do escopo v1 — ver [docs/03-escopo.md](03-escopo.md); este é só o fluxo padrão de estudo.)*
 - **Feed** — posts de texto/áudio/vídeo da comunidade, filtro por matéria
 - **Ranking** — leaderboard semanal por matéria com pódio
 - **Histórico** — gráfico de barras coloridas por matéria + lista agrupada por data
@@ -67,3 +71,5 @@ Círculo simples com olhos grandes arredondados e bochechas rosadas (estilo "kaw
 
 - [Identidade Visual no Figma](https://www.figma.com/design/dghZwyB9XNVTtDeIl3oFIo/Espa%C3%A7o-.Study?node-id=66-2&t=u720N9stHCUWybdX-1)
 - [Protótipo de Alta Fidelidade no Figma Make](https://www.figma.com/make/yYRigvDsBLT0La7L5dXqwb/Interface-prototipa%C3%A7%C3%A3o-.study?t=i7rLvIxYVgJh6atv-1)
+
+> Testem os três links (Trello, Figma, Figma Make) em uma janela anônima antes da entrega — o link do Trello é um convite (pode expirar) e os do Figma dependem do compartilhamento estar como "qualquer pessoa com o link".

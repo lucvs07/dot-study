@@ -77,6 +77,7 @@ flowchart LR
     UC5([Visualizar feed])
     UC6([Visualizar ranking])
     UC7([Customizar personagem dot])
+    UC8([Visualizar perfil do usuário])
 
     Usuario --> UC1
     Usuario --> UC2
@@ -85,5 +86,6 @@ flowchart LR
     Usuario --> UC5
     Usuario --> UC6
     Usuario --> UC7
+    Usuario --> UC8
     UC2 -. include .-> UC3
 ```

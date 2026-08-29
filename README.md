@@ -15,6 +15,7 @@ React (frontend) + Node/Express (backend). Dados mockados nesta fase — API e p
 ```
 dot-study/
 ├── README.md
+├── brainstorming-dot-study.txt  # anotações iniciais da ideia
 ├── docs/                        # documentação do projeto (ver seção abaixo)
 ├── frontend/                    # React — código entra no CP5
 ├── backend/                     # Node/Express — código entra no CP5

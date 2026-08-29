@@ -16,3 +16,7 @@ Combina foco (pomodoro), compartilhamento de conhecimento (artigos) e gamificaç
 2. **Solução/fluxo (40s)** — demonstrar o ciclo: assunto → tema → pomodoro → notas → artigo
 3. **Diferencial (30s)** — gamificação (moedas, personagem, ranking) e comunidade (feed)
 4. **Fechamento (20s)** — chamada para ação / próximos passos do projeto
+
+## Material de apoio
+
+- [Pitch em PDF](dotStudy.pdf)
