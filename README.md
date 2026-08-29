@@ -43,6 +43,12 @@ dot-study/
 - [Estrutura do Trello](docs/07-trello.md)
 - [Spec completa do CP4](docs/superpowers/specs/2026-08-11-dot-study-cp4-design.md)
 
+## Links do projeto
+
+- [Board do Trello](https://trello.com/invite/b/6a7cc49e2126473ad79f3ce2/ATTIcebbd851ce4d5e438e96a0797cc88bff46BC491A/dotstudy)
+- [Identidade Visual no Figma](https://www.figma.com/design/dghZwyB9XNVTtDeIl3oFIo/Espa%C3%A7o-.Study?node-id=66-2&t=u720N9stHCUWybdX-1)
+- [Protótipo de Alta Fidelidade no Figma Make](https://www.figma.com/make/yYRigvDsBLT0La7L5dXqwb/Interface-prototipa%C3%A7%C3%A3o-.study?t=i7rLvIxYVgJh6atv-1)
+
 ## Status do projeto
 
 **CP4 — Idealização** (em andamento). Próximo passo: CP5 — Protótipo Funcional com dados mockados.

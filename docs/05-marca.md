@@ -2,27 +2,68 @@
 
 ## Nome
 
-dot.study
+dot.study (marca ".Study" / dotStudy)
 
-## Estilo
+## Identidade do projeto
 
-Foco Minimalista — fundo neutro claro com um único acento vibrante, mascote simples e geométrico.
+Plataforma de estudos com gamificação: combina timer Pomodoro, feed social de posts de estudo, ranking entre usuários, loja de acessórios e histórico com gráficos. O avatar do usuário é um "dot" colorido personalizável com acessórios (óculos, chapéu de festa, chapéu de bruxa).
 
-## Paleta
+> **Nota sobre plataforma:** esta identidade visual foi formalizada a partir de explorações feitas em Figma/Figma Make com estética de app mobile. O v1 do projeto (CP4/CP5) continua sendo **web app responsivo** (React + Node/Express), conforme [docs/03-escopo.md](03-escopo.md) — a paleta, tipografia e mascote abaixo valem para essa superfície web, e ficam prontas para reaproveitar caso o projeto evolua para um app mobile nativo no futuro.
 
-| Uso | Cor | Hex |
+## Paleta de Cores
+
+| Nome | Hex | Uso |
 |---|---|---|
-| Fundo | Cinza-claro | `#F7F7FA` |
-| Texto | Quase-preto | `#111827` |
-| Acento primário | Índigo | `#4F46E5` |
-| Acento secundário/neutro | Cinza médio | `#9CA3AF` |
+| Teal (primária) | `#22CFD5` | CTAs, destaques, Matemática |
+| Yellow (accent) | `#FFC23D` | Moedas, estrelas, Física |
+| Purple | `#A35BBF` | Português, conquistas |
+| Red | `#EE1B3F` | Alertas, sequência, História |
+| Green | `#2CCD2C` | Sucesso, Programação |
+| Dark | `#111827` | Fundo da nav, texto principal |
+| Off-white | `#FFFFF6` | Background principal (levemente creme) |
+
+- Fundos: `#FFFFF6` (light) / `#111827` (dark)
+- Cards: `#FFFEF0` (light) / `#1F2937` (dark)
+- Textos secundários: `#6B7280`
 
 ## Tipografia
 
-Sans-serif moderna: Inter ou Poppins, para títulos e corpo de texto.
+| Família | Uso | Peso |
+|---|---|---|
+| Outfit | Títulos, logo, headings | 700–900 |
+| Inter | Corpo de texto, UI geral | 400–600 |
+| JetBrains Mono | Números, timer, stats | 400–700 |
+| Cal Sans | Marca / display ocasional | SemiBold |
+
+## Bordas & Formas
+
+- Border radius base: `0.75rem` (12px); cards grandes chegam a `1.25rem` (20px)
+- Bordas sutis: `rgba(17,24,39,0.10)` no light, `rgba(255,255,255,0.12)` no dark
+- Sombras leves (`shadow-sm`) apenas em hover ou elementos flutuantes
+
+## Estrutura de Telas
+
+- **Dashboard** — resumo do dia, streak, sessões recentes, atalho rápido
+- **Timer** — modo Desafio (sujeito + tema gerado por IA) e modo Livre; fases de trabalho, pausa e publicação
+- **Feed** — posts de texto/áudio/vídeo da comunidade, filtro por matéria
+- **Ranking** — leaderboard semanal por matéria com pódio
+- **Histórico** — gráfico de barras coloridas por matéria + lista agrupada por data
+- **Loja** — acessórios para o dot, desbloqueados com moedas ganhas nas sessões
+- **Configurações** — perfil, tema claro/escuro, cor do dot
+
+## Voz Visual
+
+- **Mood:** produtivo mas descontraído — gamificado sem ser infantil
+- **Iconografia:** Lucide (stroke fino, 20–24px)
+- **Avatares:** dot colorido simples (círculo) + acessório SVG sobreposto
+- **Microinterações:** scale on hover (`hover:scale-[1.04]`), transições suaves de 150ms
+- **Matérias com cor própria:** cada disciplina tem ícone + cor consistente em todo o app (ver paleta acima)
 
 ## Mascote "dot"
 
-Círculo simples com olhos grandes arredondados e bochechas rosadas (estilo "kawaii" discreto). Customizável por cor e por acessórios (chapéu de formatura, fones de ouvido, etc.), desbloqueados com moedas ganhas por engajamento — sempre cosmético, nunca afeta a jogabilidade.
+Círculo simples com olhos grandes arredondados e bochechas rosadas (estilo "kawaii" discreto). Customizável por cor e por acessórios (óculos, chapéu de festa, chapéu de bruxa, entre outros), desbloqueados com moedas ganhas por engajamento — sempre cosmético, nunca afeta a jogabilidade.
 
-> A formalização final do logo e da paleta em Figma (ou ferramenta similar) é produzida pelo grupo a partir desta direção.
+## Links
+
+- [Identidade Visual no Figma](https://www.figma.com/design/dghZwyB9XNVTtDeIl3oFIo/Espa%C3%A7o-.Study?node-id=66-2&t=u720N9stHCUWybdX-1)
+- [Protótipo de Alta Fidelidade no Figma Make](https://www.figma.com/make/yYRigvDsBLT0La7L5dXqwb/Interface-prototipa%C3%A7%C3%A3o-.study?t=i7rLvIxYVgJh6atv-1)

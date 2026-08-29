@@ -1,5 +1,9 @@
 # Estrutura do Trello
 
+## Board
+
+[Board do Trello — dot.study](https://trello.com/invite/b/6a7cc49e2126473ad79f3ce2/ATTIcebbd851ce4d5e438e96a0797cc88bff46BC491A/dotstudy)
+
 ## Colunas
 
 Colunas mínimas: **Backlog / To Do / Doing / Done**.
