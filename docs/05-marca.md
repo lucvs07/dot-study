@@ -71,5 +71,6 @@ Círculo simples com olhos grandes arredondados e bochechas rosadas (estilo "kaw
 
 - [Identidade Visual no Figma](https://www.figma.com/design/dghZwyB9XNVTtDeIl3oFIo/Espa%C3%A7o-.Study?node-id=66-2&t=u720N9stHCUWybdX-1)
 - [Protótipo de Alta Fidelidade no Figma Make](https://www.figma.com/make/yYRigvDsBLT0La7L5dXqwb/Interface-prototipa%C3%A7%C3%A3o-.study?t=i7rLvIxYVgJh6atv-1)
+- [Vídeo — Apresentação do Projeto e Protótipo (Figma Make)](https://youtu.be/0dKmLjSZ75s)
 
 > Testem os três links (Trello, Figma, Figma Make) em uma janela anônima antes da entrega — o link do Trello é um convite (pode expirar) e os do Figma dependem do compartilhamento estar como "qualquer pessoa com o link".

@@ -20,3 +20,4 @@ Combina foco (pomodoro), compartilhamento de conhecimento (artigos) e gamificaç
 ## Material de apoio
 
 - [Pitch em PDF](dotStudy.pdf)
+- [Vídeo do Pitch de Apresentação](https://youtu.be/lNhCYMHLotU)

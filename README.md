@@ -49,6 +49,8 @@ dot-study/
 - [Board do Trello](https://trello.com/invite/b/6a7cc49e2126473ad79f3ce2/ATTIcebbd851ce4d5e438e96a0797cc88bff46BC491A/dotstudy)
 - [Identidade Visual no Figma](https://www.figma.com/design/dghZwyB9XNVTtDeIl3oFIo/Espa%C3%A7o-.Study?node-id=66-2&t=u720N9stHCUWybdX-1)
 - [Protótipo de Alta Fidelidade no Figma Make](https://www.figma.com/make/yYRigvDsBLT0La7L5dXqwb/Interface-prototipa%C3%A7%C3%A3o-.study?t=i7rLvIxYVgJh6atv-1)
+- [Vídeo — Apresentação do Projeto e Protótipo](https://youtu.be/0dKmLjSZ75s)
+- [Vídeo — Pitch de Apresentação](https://youtu.be/lNhCYMHLotU)
 
 ## Status do projeto
 
