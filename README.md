@@ -30,8 +30,8 @@ Papéis definidos de forma ágil pelo próprio grupo, com base no que cada pesso
 |---|---|---|---|
 | Lucas Rodrigues Grecco | 558261 | Scrum Master / Organização do projeto — repositório GitHub, quadro Trello e documentação inicial | Desenvolvimento Fullstack |
 | Monique Ferreira dos Anjos | 558262 | UI/UX Designer — identidade visual, marca e prototipação | Frontend e interface do projeto |
-| Tiago Brito Nário | 558248 | UI/UX — apoio à Monique no design e na prototipação | A definir |
-| Rafael Augusto Oliveira Silva | 555154 | UI/UX — apoio à Monique no design e na prototipação | A definir |
+| Tiago Brito Nário | 558248 | UI/UX — apoio à Monique no design e na prototipação | Refinamento do protótipo e implementação da interface |
+| Rafael Augusto Oliveira Silva | 555154 | UI/UX — apoio à Monique no design e na prototipação | Refinamento do protótipo e implementação da interface |
 | Felipe Wapf Fettback | 557217 | Apresentação — criação e apresentação do pitch do projeto | Desenvolvimento Fullstack (com Lucas) |
 | Leonardo Tanaka Cortez | 556781 | Apresentação — criação e apresentação do pitch do projeto | Desenvolvimento Fullstack (com Lucas) |
 
