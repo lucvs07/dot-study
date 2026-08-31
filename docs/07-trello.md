@@ -10,16 +10,19 @@ Colunas mínimas: **Backlog / To Do / Doing / Done**.
 
 ## Backlog inicial por frente de trabalho
 
-Cada frente abaixo deve virar um ou mais cartões no quadro real, distribuídos entre os integrantes do grupo pelo próprio time:
+Cada frente abaixo virou um ou mais cartões no quadro real. Quem executou cada uma neste checkpoint (CP4):
 
-- **Documentação:** escrever problema/persona, RF/RNF, escopo
-- **Modelagem UML:** diagrama de classes, diagrama de caso de uso
-- **Marca:** identidade visual (paleta, tipografia, mascote) formalizada em Figma
-- **Pitch/Vídeo:** roteiro, gravação e edição do vídeo de 2 min
-- **GitHub:** estrutura de pastas, README, organização do repositório
-- **Trello:** montar e manter o quadro atualizado durante o checkpoint
+- **Documentação:** problema/persona, RF/RNF, escopo — Lucas
+- **Modelagem UML:** diagrama de classes, diagrama de caso de uso — Lucas
+- **Marca:** identidade visual (paleta, tipografia, mascote) formalizada em Figma — Monique, com apoio de Tiago e Rafael
+- **Prototipação (Figma / Figma Make):** Monique, com apoio de Tiago e Rafael
+- **Pitch/Vídeo:** roteiro, gravação e apresentação do pitch — Felipe e Leonardo (Tanaka)
+- **GitHub:** estrutura de pastas, README, organização do repositório — Lucas
+- **Trello:** montar e manter o quadro atualizado durante o checkpoint — Lucas
 
 ## Equipe
+
+Ver a tabela de papéis por membro (CP4 e próximas etapas) em [README.md](../README.md#equipe).
 
 | Nome | RM |
 | --- | --- |

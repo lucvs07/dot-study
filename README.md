@@ -24,14 +24,16 @@ dot-study/
 
 ## Equipe
 
-| Nome | RM |
-|---|---|
-| Lucas Rodrigues Grecco | 558261 |
-| Monique Ferreira dos Anjos | 558262 |
-| Tiago Brito Nário | 558248 |
-| Felipe Wapf Fettback | 557217 |
-| Leonardo Tanaka Cortez | 556781 |
-| Rafael Augusto Oliveira Silva | 555154 |
+Papéis definidos de forma ágil pelo próprio grupo, com base no que cada pessoa executou neste checkpoint (CP4) e no que assume a seguir.
+
+| Nome | RM | Papel no CP4 | Próximas etapas |
+|---|---|---|---|
+| Lucas Rodrigues Grecco | 558261 | Scrum Master / Organização do projeto — repositório GitHub, quadro Trello e documentação inicial | Desenvolvimento Fullstack |
+| Monique Ferreira dos Anjos | 558262 | UI/UX Designer — identidade visual, marca e prototipação | Frontend e interface do projeto |
+| Tiago Brito Nário | 558248 | UI/UX — apoio à Monique no design e na prototipação | A definir |
+| Rafael Augusto Oliveira Silva | 555154 | UI/UX — apoio à Monique no design e na prototipação | A definir |
+| Felipe Wapf Fettback | 557217 | Apresentação — criação e apresentação do pitch do projeto | Desenvolvimento Fullstack (com Lucas) |
+| Leonardo Tanaka Cortez | 556781 | Apresentação — criação e apresentação do pitch do projeto | Desenvolvimento Fullstack (com Lucas) |
 
 ## Documentação
 
