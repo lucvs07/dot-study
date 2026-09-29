@@ -1,5 +1,4 @@
 dist
 node_modules
 coverage
-frontend/src/imports
 package-lock.json
