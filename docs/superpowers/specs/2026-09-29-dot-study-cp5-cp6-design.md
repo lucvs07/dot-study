@@ -66,7 +66,7 @@ Evolui o diagrama de classes do CP4. Mudanças em relação ao CP4 ficam registr
 | `Salvo` | usuarioId, postId | Chave composta |
 | `Acessorio` | id, chave, nome, tipo, custoMoedas | Seed com `ACCESSORIES_LIST` |
 | `UsuarioAcessorio` | usuarioId, acessorioId, desbloqueadoEm | |
-| `TransacaoMoeda` | id, usuarioId, valor (±), motivo (`ciclo`\|`post`\|`compra`), referenciaId, criadoEm | Registro auditável; `Usuario.moedas` atualizado na mesma transação |
+| `TransacaoMoeda` | id, usuarioId, valor (±), motivo (`boas_vindas`\|`ciclo`\|`post`\|`compra`), referenciaId, criadoEm | Registro auditável; `Usuario.moedas` atualizado na mesma transação |
 
 **`RankingEntry` deixa de ser tabela**: o ranking é calculado por consulta (agregação sobre ciclos concluídos e posts por assunto). Evita dados duplicados e inconsistentes.
 
@@ -77,6 +77,9 @@ Evolui o diagrama de classes do CP4. Mudanças em relação ao CP4 ficam registr
 | Ciclo de pomodoro concluído | +10 | +10 (somente modo desafio, que tem assunto) |
 | Post publicado (qualquer tipo) | +30 | +30 (se o post tiver assunto) |
 | Compra de acessório | −custo | — |
+| Cadastro (bônus de boas-vindas) | +250 | — |
+
+O bônus de boas-vindas permite que uma conta nova complete o fluxo de ponta a ponta (estudar → publicar → comprar o acessório mais barato, 250 moedas).
 
 Pontuação do usuário no assunto = `10 × ciclos concluídos no assunto + 30 × posts no assunto`, período total.
 
@@ -86,6 +89,10 @@ Pontuação do usuário no assunto = `10 × ciclos concluídos no assunto + 30 �
 - `ciclosConcluidos` nunca passa de `ciclosPlanejados`.
 - Cada sessão gera recompensa por no máximo 1 post.
 - Compra falha se saldo < custo ou acessório já desbloqueado.
+
+### Modo demo
+
+Com `VITE_DEMO_MODE=true`, o modo desafio ganha a dificuldade "Demo" (1 minuto), usada para gravar os vídeos. A regra anti-trapaça continua valendo sobre os minutos da sessão (54 s). Desligado por padrão nos deploys.
 
 ## 5. Frontend
 
