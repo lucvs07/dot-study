@@ -57,7 +57,8 @@ export const MOCK_ARTICLES: Article[] = [
   {
     id: "art3",
     title: "Persistent Homology Methods for Feature Extraction in High-Dimensional Neural Activation Spaces",
-    titlePt: "Métodos de Homologia Persistente para Extração de Características em Espaços de Ativação Neurais de Alta Dimensão",
+    titlePt:
+      "Métodos de Homologia Persistente para Extração de Características em Espaços de Ativação Neurais de Alta Dimensão",
     authors: ["G. Carlsson", "V. de Silva", "L. Guibas"],
     year: 2023,
     source: "CORE",
@@ -71,7 +72,8 @@ export const MOCK_ARTICLES: Article[] = [
   {
     id: "art4",
     title: "Computational Stylometry and Authorship Attribution in Brazilian Portuguese: A Corpus-Based Approach",
-    titlePt: "Estilometria Computacional e Atribuição de Autoria em Português Brasileiro: Uma Abordagem Baseada em Corpus",
+    titlePt:
+      "Estilometria Computacional e Atribuição de Autoria em Português Brasileiro: Uma Abordagem Baseada em Corpus",
     authors: ["C. R. Souza", "R. L. Mendes", "L. F. Carvalho"],
     year: 2022,
     source: "Semantic Scholar",

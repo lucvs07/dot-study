@@ -1,10 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;900&family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;900&family=Inter:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;700&display=swap");
 
 @font-face {
-  font-family: 'Cal Sans';
+  font-family: "Cal Sans";
   font-style: normal;
   font-weight: 400 600;
   font-display: swap;
-  src: url('https://cdn.jsdelivr.net/npm/cal-sans@1.0.1/fonts/CalSans-SemiBold.woff2') format('woff2'),
-       url('https://cdn.jsdelivr.net/npm/cal-sans@1.0.1/fonts/CalSans-SemiBold.woff') format('woff');
+  src:
+    url("https://cdn.jsdelivr.net/npm/cal-sans@1.0.1/fonts/CalSans-SemiBold.woff2") format("woff2"),
+    url("https://cdn.jsdelivr.net/npm/cal-sans@1.0.1/fonts/CalSans-SemiBold.woff") format("woff");
 }
