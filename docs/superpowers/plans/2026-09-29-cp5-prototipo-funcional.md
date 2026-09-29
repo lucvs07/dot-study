@@ -42,6 +42,9 @@ git commit --author="<Autor> <<email>>" -m "<tipo>: <mensagem em pt-BR>" -m "Co-
 | Leonardo | `Leonardo Tanaka Cortez <leonardotanaka0513@gmail.com>` |
 
 - Branch de trabalho: `feat/cp5` (já existe). Não fazer push nem abrir PR sem confirmação do usuário (Task 18).
+- O git local já tem `user.name "Lucas Rodrigues Grecco"` e `user.email "79089727+lucvs07@users.noreply.github.com"` (committer). Não alterar.
+- Um hook bloqueia `rm -r`/`rm -f` fora de `/tmp` (inclusive dentro de heredocs e `python -c`). Para apagar arquivos versionados use `git rm` / `git rm -r`; para não versionados, `rm` sem flags por arquivo ou `find <dir> -delete`. Se algo for bloqueado, parar e reportar — não contornar.
+- TanStack Query v5: sempre a forma objeto, `useQuery({ queryKey, queryFn })` / `useMutation({ mutationFn })`. Onde o plano escreve `useQuery(queryKeys.x, fn)` como atalho, entender `useQuery({ queryKey: queryKeys.x, queryFn: fn })`.
 
 ## Review Focus
 
@@ -352,8 +355,15 @@ Em `frontend/vite.config.ts`, trocar o import para `import { defineConfig } from
 `frontend/vitest.setup.ts`:
 
 ```ts
+import { Blob as NodeBlob } from "node:buffer";
 import "@testing-library/jest-dom/vitest";
 import "fake-indexeddb/auto";
+
+// O Blob do jsdom não tem arrayBuffer()/text() e não sobrevive ao structuredClone do
+// fake-indexeddb; o Blob do Node funciona nos dois ambientes (verificado).
+if (typeof Blob === "undefined" || typeof Blob.prototype.arrayBuffer !== "function") {
+  globalThis.Blob = NodeBlob as unknown as typeof Blob;
+}
 ```
 
 Adicionar `"types": ["vite/client", "vitest/globals"]` não é necessário (usar imports explícitos de `vitest`). Incluir `"vitest.setup.ts"` em `include` do `tsconfig.json` do frontend.
@@ -376,20 +386,44 @@ Scripts na raiz (Prettier só no código — as docs em Markdown ficam como est�
 
 - [ ] **Step 5: Teste de fumaça**
 
-`frontend/src/test/smoke.test.ts`:
+`frontend/src/test/smoke.test.ts` (ambiente node) e `frontend/src/test/smoke-dom.test.ts` (mesmo conteúdo, com `// @vitest-environment jsdom` na 1ª linha):
 
 ```ts
 import { describe, expect, it } from "vitest";
 
 describe("ambiente de testes", () => {
-  it("tem IndexedDB falso disponível", () => {
-    expect(typeof indexedDB.open).toBe("function");
+  it("tem crypto.subtle, randomUUID e structuredClone", async () => {
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("x"));
+    expect(digest.byteLength).toBe(32);
+    expect(crypto.randomUUID()).toMatch(/-/);
+    expect(structuredClone({ a: [1] })).toEqual({ a: [1] });
+  });
+
+  it("guarda e lê Blob no IndexedDB falso", async () => {
+    const db: IDBDatabase = await new Promise((resolve, reject) => {
+      const req = indexedDB.open(`smoke-${Math.random()}`, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("b");
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    await new Promise((resolve, reject) => {
+      const req = db.transaction("b", "readwrite").objectStore("b").put(new Blob(["oi"], { type: "audio/webm" }), "k");
+      req.onsuccess = resolve;
+      req.onerror = () => reject(req.error);
+    });
+    const got: Blob = await new Promise((resolve, reject) => {
+      const req = db.transaction("b").objectStore("b").get("k");
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    expect(got.type).toBe("audio/webm");
+    expect(await got.text()).toBe("oi");
   });
 });
 ```
 
 Run: `npm test`
-Expected: `1 passed`.
+Expected: `4 passed`. Se algum falhar, **parar e reportar** — as Tasks 4–15 dependem disso.
 
 - [ ] **Step 6: Deixar o lint passar**
 
@@ -2043,6 +2077,7 @@ describe("PostService (mock)", () => {
     const first = await posts.create({ sessionId: s.id, type: "text", title: "Aprendi limites", content: "..." });
     expect(first.reward).toEqual({ coinsEarned: 30, balance: 880 });
     expect(first.post).toMatchObject({ subjectId: 1, likeCount: 0, author: { name: "Guilherme" } });
+    advance(1000); // evita empate de createdAt na ordenação
     const second = await posts.create({ sessionId: s.id, type: "text", title: "De novo", content: "" });
     expect(second.reward).toBeNull();
     expect((await posts.list()).items[0].id).toBe(second.post.id);
@@ -3919,7 +3954,7 @@ git commit --author="Rafael Augusto Oliveira Silva <rafael.a.os@hotmail.com>" \
 
 **Interfaces:**
 - Produces:
-  - `CURATED_PLAYLISTS: { id: string; name: string; spotifyUri: string }[]` — 3 playlists de foco públicas do Spotify (buscar no Spotify: "Lofi Beats", "Deep Focus", "Peaceful Piano" — são playlists editoriais públicas; copiar a URI `spotify:playlist:<id>` de cada uma pelo "Compartilhar → Copiar link", convertendo `https://open.spotify.com/playlist/<id>` em `spotify:playlist:<id>`)
+  - `CURATED_PLAYLISTS: { id: string; name: string; spotifyUri: string }[]` — 3 playlists de foco públicas. **Os IDs são fornecidos pelo controlador no prompt da task** (verificados com `curl -s "https://open.spotify.com/oembed?url=https://open.spotify.com/playlist/<id>"`, que devolve o título). Nunca inventar IDs.
   - `pkce.ts`: `generateVerifier(random?: (n) => Uint8Array): string`, `challengeFromVerifier(verifier): Promise<string>`, `buildAuthorizeUrl({ clientId, redirectUri, challenge, state }): string`, `SPOTIFY_SCOPES = ["playlist-read-private"]`
   - `spotifyApi.ts`: `exchangeCode({ clientId, code, verifier, redirectUri, fetchFn? }): Promise<SpotifyToken>`, `getMyPlaylists(token, fetchFn?): Promise<{ id; name; uri; imageUrl: string | null }[]>`, `class SpotifyError extends Error { kind: "not_allowed" | "expired" | "network" | "unknown" }`, `interface SpotifyToken { accessToken: string; expiresAt: number }`, `loadToken(): SpotifyToken | null`, `saveToken(t)`, `clearToken()` (sessionStorage `dotstudy:spotify`)
   - `embedController.ts`: `loadIframeApi(): Promise<IFrameAPI>`, `createController(el: HTMLElement, uri: string): Promise<EmbedController>` com `loadUri(uri)`, `togglePlay()`, `addListener("playback_update", cb)`
@@ -4133,6 +4168,8 @@ export async function createController(el: HTMLElement, uri: string): Promise<Em
 - Se `loadIframeApi` falhar (bloqueador de conteúdo): `notice = "Não foi possível carregar o player do Spotify."` e o resto do app segue normal.
 
 `SpotifyCallbackPage.tsx`: lê `code`, `state`, `error` da URL; confere `state` com o salvo; `exchangeCode(...)` → `saveToken` → `navigate("/", { replace: true })`. Em `error=access_denied` ou state diferente: mostra `ErrorMessage` "Conexão com o Spotify cancelada." e botão "Voltar".
+
+Em `frontend/vite.config.ts`, adicionar `server: { host: "127.0.0.1", port: 5173 }` e `preview: { host: "127.0.0.1", port: 4173 }` — o Spotify não aceita `localhost` como redirect e o callback usa `location.origin`.
 
 Registrar nas docs (Task 17) as redirect URIs: `http://127.0.0.1:5173/spotify/callback` (dev), URL do CP5 na Vercel + `/spotify/callback`.
 
