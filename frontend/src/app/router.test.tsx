@@ -3,7 +3,13 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { createTestServices, loginDemo, renderWithProviders } from "@/test/renderWithProviders";
+import { useAuth } from "@/hooks/useAuth";
 import { AppRoutes } from "./router";
+
+function LogoutButton() {
+  const { logout } = useAuth();
+  return <button onClick={() => void logout()}>Sair</button>;
+}
 
 async function renderLogged(route: string) {
   const services = createTestServices();
@@ -36,5 +42,20 @@ describe("rotas do app", () => {
   it("rota desconhecida cai no dashboard", async () => {
     await renderLogged("/nao-existe");
     expect(await screen.findByText(/guilherme/i)).toBeInTheDocument();
+  });
+
+  it("sair da conta volta para o login", async () => {
+    const services = createTestServices();
+    await loginDemo(services);
+    renderWithProviders(
+      <>
+        <AppRoutes />
+        <LogoutButton />
+      </>,
+      { route: "/ranking", services },
+    );
+    await screen.findByRole("link", { name: /ranking/i });
+    await userEvent.click(screen.getByRole("button", { name: "Sair" }));
+    expect(await screen.findByRole("heading", { name: /entrar/i })).toBeInTheDocument();
   });
 });

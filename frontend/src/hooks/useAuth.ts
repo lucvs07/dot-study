@@ -18,8 +18,10 @@ export function useAuth() {
     },
     async logout() {
       await services.auth.logout();
-      queryClient.clear();
+      // Zera `me` antes de limpar o resto: `clear()` removeria a query sem avisar os
+      // observers (ProtectedRoute), e a tela não voltaria para o login.
       queryClient.setQueryData(queryKeys.me, null);
+      queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== queryKeys.me[0] });
     },
   };
 }
