@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronRight, ChevronUp, ListMusic, Pause, Play } from "lucide-react";
 import { CURATED_PLAYLISTS } from "@/spotify/playlists";
 import { buildAuthorizeUrl, challengeFromVerifier, generateVerifier } from "@/spotify/pkce";
-import { clearToken, getMyPlaylists, loadToken, SpotifyError } from "@/spotify/spotifyApi";
+import { clearToken, getMyPlaylists, loadToken, SpotifyError, subscribeToken } from "@/spotify/spotifyApi";
 import { createController, type EmbedController } from "@/spotify/embedController";
 
 const PKCE_KEY = "dotstudy:spotify:pkce";
@@ -39,6 +39,10 @@ export function SpotifyPlayer() {
       controllerRef.current = null;
     };
   }, []);
+
+  // Reage a conectar/desconectar feitos fora deste componente (ex.: a página de callback
+  // salvando o token enquanto o player já está montado no layout).
+  useEffect(() => subscribeToken(() => setConnected(loadToken() !== null)), []);
 
   useEffect(() => {
     if (!connected) return;

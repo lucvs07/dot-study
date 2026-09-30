@@ -85,6 +85,7 @@ export function saveToken(t: SpotifyToken) {
   } catch {
     // sessionStorage indisponível (modo privado etc.): a conexão simplesmente não persiste.
   }
+  notifyTokenChange();
 }
 export function clearToken() {
   try {
@@ -92,4 +93,16 @@ export function clearToken() {
   } catch {
     // idem: nada a fazer se o storage não está disponível.
   }
+  notifyTokenChange();
+}
+
+// O player fica montado no layout (inclusive na rota /spotify/callback), então ele
+// precisa saber quando o token muda sem depender de recarregar a página.
+const TOKEN_EVENT = "dotstudy:spotify-token";
+function notifyTokenChange() {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(TOKEN_EVENT));
+}
+export function subscribeToken(cb: () => void): () => void {
+  window.addEventListener(TOKEN_EVENT, cb);
+  return () => window.removeEventListener(TOKEN_EVENT, cb);
 }
