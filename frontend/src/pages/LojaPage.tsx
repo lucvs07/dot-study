@@ -15,7 +15,10 @@ export function LojaPage() {
   const user = useCurrentUser();
   const { dotColor, activeAccessoryId, coins, unlockedAccessoryIds } = user;
 
-  const accessoriesQuery = useQuery({ queryKey: queryKeys.accessories, queryFn: () => services.shop.listAccessories() });
+  const accessoriesQuery = useQuery({
+    queryKey: queryKeys.accessories,
+    queryFn: () => services.shop.listAccessories(),
+  });
 
   const updateDotMutation = useMutation({
     mutationFn: (input: { dotColor?: string; activeAccessoryId?: string | null }) => services.users.updateDot(input),

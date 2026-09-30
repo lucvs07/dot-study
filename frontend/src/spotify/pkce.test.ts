@@ -14,7 +14,12 @@ describe("PKCE", () => {
   });
   it("monta a URL de autorização", () => {
     const url = new URL(
-      buildAuthorizeUrl({ clientId: "abc", redirectUri: "http://127.0.0.1:8080/spotify/callback", challenge: "ch", state: "st" }),
+      buildAuthorizeUrl({
+        clientId: "abc",
+        redirectUri: "http://127.0.0.1:8080/spotify/callback",
+        challenge: "ch",
+        state: "st",
+      }),
     );
     expect(url.origin + url.pathname).toBe("https://accounts.spotify.com/authorize");
     expect(Object.fromEntries(url.searchParams)).toEqual({

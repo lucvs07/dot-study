@@ -115,7 +115,9 @@ export function SpotifyPlayer() {
       // estado ausente e cair no fluxo de "conexão cancelada" com segurança.
     }
     const challenge = await challengeFromVerifier(verifier);
-    location.assign(buildAuthorizeUrl({ clientId, redirectUri: `${location.origin}/spotify/callback`, challenge, state }));
+    location.assign(
+      buildAuthorizeUrl({ clientId, redirectUri: `${location.origin}/spotify/callback`, challenge, state }),
+    );
   }
 
   function disconnectSpotify() {
@@ -187,9 +189,7 @@ export function SpotifyPlayer() {
 
         <div className="max-h-48 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
           {yours.length > 0 && (
-            <p className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-              Suas playlists
-            </p>
+            <p className="px-3 pt-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground">Suas playlists</p>
           )}
           {yours.map((playlist) => (
             <PlaylistRow key={playlist.id} playlist={playlist} active={active} onSelect={selectPlaylist} />

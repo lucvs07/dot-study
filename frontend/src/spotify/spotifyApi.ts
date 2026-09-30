@@ -27,7 +27,8 @@ async function call(fetchFn: FetchFn, url: string, init?: RequestInit): Promise<
     throw new SpotifyError("network", "Sem conexão com o Spotify.");
   }
   if (res.status === 401) throw new SpotifyError("expired", "Sua conexão com o Spotify expirou. Conecte de novo.");
-  if (res.status === 403) throw new SpotifyError("not_allowed", "Sua conta do Spotify não está liberada neste app de demonstração.");
+  if (res.status === 403)
+    throw new SpotifyError("not_allowed", "Sua conta do Spotify não está liberada neste app de demonstração.");
   if (!res.ok) throw new SpotifyError("unknown", "O Spotify não respondeu como esperado.");
   return res.json();
 }

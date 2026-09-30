@@ -146,7 +146,13 @@ export function AjustesPage() {
                 onClick={() => nameMutation.mutate()}
                 disabled={!name.trim() || nameMutation.isPending}
                 className="px-4 py-2 rounded-xl whitespace-nowrap disabled:opacity-50"
-                style={{ background: dotColor, color: BRAND.dark, fontFamily: "Inter", fontWeight: 600, fontSize: "0.85rem" }}
+                style={{
+                  background: dotColor,
+                  color: BRAND.dark,
+                  fontFamily: "Inter",
+                  fontWeight: 600,
+                  fontSize: "0.85rem",
+                }}
               >
                 Salvar nome
               </button>
