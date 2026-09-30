@@ -15,6 +15,11 @@ export default defineConfig({
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ["**/*.svg", "**/*.csv"],
 
+  // O Spotify não aceita "localhost" como redirect URI do OAuth; o callback usa
+  // `location.origin`, então dev e preview precisam responder em 127.0.0.1.
+  server: { host: "127.0.0.1", port: 5173 },
+  preview: { host: "127.0.0.1", port: 4173 },
+
   test: {
     environment: "node",
     setupFiles: ["./vitest.setup.ts"],

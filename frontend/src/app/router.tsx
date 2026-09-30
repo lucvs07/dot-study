@@ -13,6 +13,7 @@ import { FeedPage } from "@/pages/FeedPage";
 import { PostPage } from "@/pages/PostPage";
 import { LojaPage } from "@/pages/LojaPage";
 import { AjustesPage } from "@/pages/AjustesPage";
+import { SpotifyCallbackPage } from "@/pages/SpotifyCallbackPage";
 
 export function AppRoutes() {
   return (
@@ -31,6 +32,7 @@ export function AppRoutes() {
           <Route path="historico" element={<HistoricoPage />} />
           <Route path="loja" element={<LojaPage />} />
           <Route path="ajustes" element={<AjustesPage />} />
+          <Route path="spotify/callback" element={<SpotifyCallbackPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
