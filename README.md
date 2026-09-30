@@ -52,7 +52,7 @@ npm install
 npm run dev
 ```
 
-Abra `http://localhost:5173`.
+Abra `http://127.0.0.1:5173`. O servidor de desenvolvimento fica em `127.0.0.1` (não `localhost`) porque o Spotify não aceita `localhost` como redirect URI do OAuth, e o callback de conexão usa `location.origin` (ver `frontend/vite.config.ts`).
 
 Para gravar vídeos com sessões curtas, ligue o modo demo (dificuldade "Demo" de 1 minuto):
 
