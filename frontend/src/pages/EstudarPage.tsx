@@ -27,7 +27,7 @@ import { articlesForTheme } from "@/content/articleData";
 import { useStudy } from "@/content/StudyContext";
 import { DotAvatar } from "@/components/DotAvatar";
 import { PostPublisher } from "@/components/PostPublisher";
-import { useLegacyState } from "@/app/App";
+import { useCurrentUser } from "@/hooks/useAuth";
 import { queryKeys } from "@/app/queryKeys";
 import { useServices } from "@/services/ServicesContext";
 import type { SessionMode } from "@/services/contracts";
@@ -101,8 +101,9 @@ export function EstudarPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const study = useStudy();
-  // LEGADO: cor/acessório com as sobrescritas locais da loja (Tasks 14–15).
-  const { dotColor, activeAccessory } = useLegacyState();
+  const currentUser = useCurrentUser();
+  const dotColor = currentUser.dotColor;
+  const activeAccessory = currentUser.activeAccessoryId;
   const { countdown, session, phase } = study;
 
   const subjectsQuery = useQuery({ queryKey: queryKeys.subjects, queryFn: () => services.subjects.list() });

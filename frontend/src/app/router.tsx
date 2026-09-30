@@ -11,7 +11,8 @@ import { LeituraListaPage } from "@/pages/LeituraListaPage";
 import { LeituraPage } from "@/pages/LeituraPage";
 import { FeedPage } from "@/pages/FeedPage";
 import { PostPage } from "@/pages/PostPage";
-import { SettingsView, ShopView } from "./App";
+import { LojaPage } from "@/pages/LojaPage";
+import { AjustesPage } from "@/pages/AjustesPage";
 
 export function AppRoutes() {
   return (
@@ -28,8 +29,8 @@ export function AppRoutes() {
           <Route path="feed/:postId" element={<PostPage />} />
           <Route path="ranking" element={<RankingPage />} />
           <Route path="historico" element={<HistoricoPage />} />
-          <Route path="loja" element={<ShopView />} />
-          <Route path="ajustes" element={<SettingsView />} />
+          <Route path="loja" element={<LojaPage />} />
+          <Route path="ajustes" element={<AjustesPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
