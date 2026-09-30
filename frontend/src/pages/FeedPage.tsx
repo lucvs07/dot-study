@@ -1,5 +1,5 @@
 import { useState, type ElementType } from "react";
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { Bookmark, Heart, MessageCircle, Mic, PenLine, Play, Video } from "lucide-react";
 import { BRAND } from "@/domain/brand";
@@ -9,7 +9,8 @@ import { LoadingState } from "@/components/LoadingState";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { useServices } from "@/services/ServicesContext";
 import { queryKeys } from "@/app/queryKeys";
-import type { Page, Post, PostFilter, PostType, Subject } from "@/services/contracts";
+import { applyPostUpdate } from "./postCache";
+import type { Post, PostFilter, PostType, Subject } from "@/services/contracts";
 
 const POST_TYPE_ICON: Record<PostType, ElementType> = { text: PenLine, audio: Mic, video: Video };
 
@@ -39,25 +40,13 @@ export function FeedPage() {
     getNextPageParam: (last) => last.nextCursor,
   });
 
-  const updatePostCache = (post: Post) => {
-    queryClient.setQueriesData<InfiniteData<Page<Post>>>({ queryKey: ["posts"] }, (old) =>
-      old
-        ? {
-            ...old,
-            pages: old.pages.map((p) => ({ ...p, items: p.items.map((it) => (it.id === post.id ? post : it)) })),
-          }
-        : old,
-    );
-    queryClient.setQueryData(queryKeys.post(post.id), post);
-  };
-
   const likeMutation = useMutation({
     mutationFn: (post: Post) => (post.likedByMe ? services.posts.unlike(post.id) : services.posts.like(post.id)),
-    onSuccess: updatePostCache,
+    onSuccess: (post) => applyPostUpdate(queryClient, post),
   });
   const saveMutation = useMutation({
     mutationFn: (post: Post) => (post.savedByMe ? services.posts.unsave(post.id) : services.posts.save(post.id)),
-    onSuccess: updatePostCache,
+    onSuccess: (post) => applyPostUpdate(queryClient, post),
   });
 
   if (subjectsQuery.isLoading || postsQuery.isLoading) return <LoadingState />;

@@ -36,4 +36,13 @@ describe("Feed", () => {
     expect(await screen.findByText("Muito bom!")).toBeInTheDocument();
     expect((await services.posts.get("p2")).commentCount).toBe(1);
   });
+
+  it("remover dos salvos some da lista de Salvos na hora", async () => {
+    await open("/feed");
+    await userEvent.click(await screen.findByRole("button", { name: /^salvos$/i }));
+    expect(await screen.findByText("Por que aprendi algoritmos antes de frameworks")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /remover dos salvos/i }));
+    expect(screen.queryByText("Por que aprendi algoritmos antes de frameworks")).not.toBeInTheDocument();
+    expect(await screen.findByText("Você ainda não salvou nenhum post.")).toBeInTheDocument();
+  });
 });

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, Bookmark, Heart, MessageCircle, Play, Send } from "lucide-react";
 import { BRAND } from "@/domain/brand";
@@ -11,7 +11,8 @@ import { useMediaUrl } from "@/hooks/useMediaUrl";
 import { useCurrentUser } from "@/hooks/useAuth";
 import { useServices } from "@/services/ServicesContext";
 import { queryKeys } from "@/app/queryKeys";
-import type { Comment, Page, Post } from "@/services/contracts";
+import { applyPostUpdate } from "./postCache";
+import type { Comment } from "@/services/contracts";
 
 const AUDIO_WAVE_HEIGHTS = [40, 70, 50, 90, 60, 80, 45, 75, 55, 85, 65, 95, 50, 70, 40, 80, 60, 45];
 
@@ -158,31 +159,19 @@ export function PostPage() {
 
   const { src, error: mediaError } = useMediaUrl(postQuery.data?.mediaUrl ?? null);
 
-  const updatePostCache = (post: Post) => {
-    queryClient.setQueriesData<InfiniteData<Page<Post>>>({ queryKey: ["posts"] }, (old) =>
-      old
-        ? {
-            ...old,
-            pages: old.pages.map((p) => ({ ...p, items: p.items.map((it) => (it.id === post.id ? post : it)) })),
-          }
-        : old,
-    );
-    queryClient.setQueryData(queryKeys.post(post.id), post);
-  };
-
   const likeMutation = useMutation({
     mutationFn: () => {
       const post = postQuery.data!;
       return post.likedByMe ? services.posts.unlike(post.id) : services.posts.like(post.id);
     },
-    onSuccess: updatePostCache,
+    onSuccess: (post) => applyPostUpdate(queryClient, post),
   });
   const saveMutation = useMutation({
     mutationFn: () => {
       const post = postQuery.data!;
       return post.savedByMe ? services.posts.unsave(post.id) : services.posts.save(post.id);
     },
-    onSuccess: updatePostCache,
+    onSuccess: (post) => applyPostUpdate(queryClient, post),
   });
 
   const commentMutation = useMutation({
