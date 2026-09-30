@@ -43,6 +43,13 @@ dot-study/
 
 > No CP5 os dados ficam salvos apenas no seu navegador (`localStorage`/IndexedDB), sem backend. Se quiser recomeçar do zero, use o botão **"Restaurar dados de demonstração"** em Ajustes.
 
+> **Tempo de um desafio completo:** no modo normal, a menor dificuldade é de 15 minutos de foco, então o fluxo inteiro (estudar → publicar → aparecer no ranking) leva **pelo menos 15 minutos**. Para a avaliação, recomendamos que a equipe ligue `VITE_DEMO_MODE=true` nas variáveis de ambiente do projeto do CP5 na Vercel: isso libera a dificuldade "Demo" (1 minuto). Para ver a loja e o feed já populados, use a conta de demonstração acima (840 moedas, posts e ranking de exemplo).
+
+### Deploy (Vercel)
+
+- **Root Directory:** `frontend` (o `vercel.json` com o fallback de SPA fica nessa pasta).
+- **Variáveis de ambiente:** `VITE_DATA_SOURCE=mock`, `VITE_DEMO_MODE=true` (recomendado para a avaliação) e, opcionalmente, `VITE_SPOTIFY_CLIENT_ID`.
+
 ## Como rodar localmente
 
 Pré-requisito: Node.js ≥ 20.
@@ -54,11 +61,25 @@ npm run dev
 
 Abra `http://127.0.0.1:5173`. O servidor de desenvolvimento fica em `127.0.0.1` (não `localhost`) porque o Spotify não aceita `localhost` como redirect URI do OAuth, e o callback de conexão usa `location.origin` (ver `frontend/vite.config.ts`).
 
-Para gravar vídeos com sessões curtas, ligue o modo demo (dificuldade "Demo" de 1 minuto):
+Para gravar vídeos com sessões curtas, ligue o modo demo (dificuldade "Demo" de 1 minuto). Funciona em qualquer sistema operacional (usa `frontend/.env.demo`):
 
 ```bash
-VITE_DEMO_MODE=true npm run dev
+npm run dev:demo
 ```
+
+### Testar "Conectar Spotify" localmente
+
+Sem configuração, o player mostra só as playlists curadas do dot.study (não precisa de conta). Para testar a conexão com a conta do usuário:
+
+1. Crie um app no [Spotify Developer Dashboard](https://developer.spotify.com/dashboard). Em modo desenvolvedor, o dono do app precisa ter Spotify Premium e só até 5 usuários cadastrados na allowlist do app conseguem conectar.
+2. Cadastre a redirect URI `http://127.0.0.1:5173/spotify/callback`.
+3. Crie `frontend/.env.local` com o Client ID (público, sem segredo — o fluxo é PKCE):
+
+   ```bash
+   VITE_SPOTIFY_CLIENT_ID=<seu client id>
+   ```
+
+4. Reinicie o `npm run dev` e abra `http://127.0.0.1:5173`. O botão "Conectar Spotify" aparece no menu de playlists do player.
 
 Outros comandos úteis (raiz do repositório):
 

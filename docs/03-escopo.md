@@ -2,7 +2,7 @@
 
 ## Dentro do escopo
 
-- Seleção de área de assunto (tecnologia, marketing, economia, etc.)
+- Seleção de área de assunto (Matemática, Física, História, Português e Programação)
 - Sugestão de temática aleatória dentro do assunto escolhido
 - Sessão de estudo com pomodoro configurável + bloco de anotações
 - Publicação de artigo a partir da sessão de estudo

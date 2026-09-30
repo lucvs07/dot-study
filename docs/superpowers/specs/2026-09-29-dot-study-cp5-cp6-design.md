@@ -216,7 +216,7 @@ JWT com validade de 7 dias, enviado no header `Authorization: Bearer`, guardado 
 - **"Conectar Spotify" (opcional):** OAuth Authorization Code com **PKCE**, feito inteiramente no frontend (sem client secret, sem backend). Token no `sessionStorage`. Com a conta conectada, lista `GET /me/playlists` e toca a escolhida pelo embed.
 - **Restrições documentadas:** o app do Spotify fica em modo desenvolvedor — dono com Premium, no máximo 5 usuários em allowlist (os integrantes do grupo para a demo).
 - **Fallback:** usuário fora da allowlist (403), token expirado ou erro de rede → aviso "Não foi possível conectar ao Spotify" e volta para as playlists curadas.
-- **Redirect URIs cadastradas:** URL de produção da Vercel, URL do CP5 e `http://127.0.0.1:8080/spotify/callback` (o Spotify não aceita `localhost`).
+- **Redirect URIs cadastradas:** URL de produção da Vercel, URL do CP5, `http://127.0.0.1:5173/spotify/callback` (desenvolvimento local com `npm run dev`) e `http://127.0.0.1:8080/spotify/callback` (Docker Compose, CP6). O Spotify não aceita `localhost`.
 - `VITE_SPOTIFY_CLIENT_ID` é público (PKCE); sem ele, o botão "Conectar Spotify" some e só o player curado aparece.
 
 ## 9. Deploy e instalável

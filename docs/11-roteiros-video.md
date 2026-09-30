@@ -5,7 +5,7 @@ Vídeo de demonstração do protótipo funcional, gravado a partir do app public
 **Configuração para gravar:**
 
 ```bash
-VITE_DEMO_MODE=true npm run dev
+npm run dev:demo
 ```
 
 Isso libera a dificuldade "Demo" (1 minuto) no modo desafio, para não esperar o tempo real de foco durante a gravação. Cortes de tempo morto (carregamento, digitação) podem ser acelerados na edição.

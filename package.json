@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "dev": "npm run dev -w frontend",
+    "dev:demo": "npm run dev:demo -w frontend",
     "build": "npm run build -w frontend",
     "typecheck": "npm run typecheck -w frontend",
     "test": "npm test -w frontend",
