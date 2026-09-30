@@ -102,12 +102,14 @@ function RecorderPanel({
     fileUrlRef.current = next?.url ?? null;
     setFile(next);
   };
-  useEffect(
-    () => () => {
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
       if (fileUrlRef.current) URL.revokeObjectURL(fileUrlRef.current);
-    },
-    [],
-  );
+    };
+  }, []);
 
   // Informa ao pai a mídia pronta (gravação ou arquivo).
   useEffect(() => {
@@ -149,15 +151,16 @@ function RecorderPanel({
     setReadingFile(true);
     try {
       const duration = await readVideoDuration(chosen);
+      if (!mounted.current) return; // painel saiu durante a leitura: não cria URL que ninguém revoga
       if (duration > limits.maxSeconds) {
         setFileError(`O vídeo passou de ${limits.maxSeconds / 60} minutos.`);
         return;
       }
       setFileState({ blob: chosen, url: URL.createObjectURL(chosen), durationSec: Math.max(1, Math.round(duration)) });
     } catch {
-      setFileError("Não foi possível ler este vídeo. Tente outro arquivo.");
+      if (mounted.current) setFileError("Não foi possível ler este vídeo. Tente outro arquivo.");
     } finally {
-      setReadingFile(false);
+      if (mounted.current) setReadingFile(false);
     }
   };
 

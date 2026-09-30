@@ -49,6 +49,8 @@ export function useMediaRecorder(kind: RecorderKind) {
   const streamRef = useRef<MediaStream | null>(null);
   const previewRef = useRef<string | null>(null);
   const startedAt = useRef(0);
+  /** Incrementado ao descartar: um start() que ainda aguarda a permissão é cancelado. */
+  const generation = useRef(0);
   const maxSeconds = MEDIA_LIMITS[kind].maxSeconds;
 
   const stop = useCallback(() => {
@@ -57,6 +59,7 @@ export function useMediaRecorder(kind: RecorderKind) {
 
   /** Descarta o gravador atual sem produzir blob (regravar / desmontar). */
   const discardRecorder = useCallback(() => {
+    generation.current += 1;
     const rec = recorder.current;
     if (rec) {
       rec.ondataavailable = null;
@@ -77,11 +80,17 @@ export function useMediaRecorder(kind: RecorderKind) {
       return;
     }
     setStatus("requesting");
+    const myGeneration = generation.current;
     let media: MediaStream | null = null;
     try {
       media = await navigator.mediaDevices.getUserMedia(
         kind === "audio" ? { audio: true } : { audio: true, video: { width: 640, height: 480 } },
       );
+      // Descartado (regravar, troca de aba, desmontagem) enquanto pedia permissão: solta o dispositivo.
+      if (generation.current !== myGeneration) {
+        stopTracks(media);
+        return;
+      }
       const mimeType = pickMime(kind);
       const rec = new MediaRecorder(media, mimeType ? { mimeType } : undefined);
       const chunks: Blob[] = [];
@@ -111,6 +120,7 @@ export function useMediaRecorder(kind: RecorderKind) {
       setStatus("recording");
     } catch (err) {
       stopTracks(media);
+      if (generation.current !== myGeneration) return;
       recorder.current = null;
       streamRef.current = null;
       setStream(null);
