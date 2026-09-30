@@ -63,16 +63,19 @@ describe("Estudar (desafio)", () => {
     }
   });
 
-  it("publica o post da sessão e vai para o feed", async () => {
+  it("publica o post da sessão, abre o post e mostra as moedas do post", async () => {
     const { user, services } = await startChallenge();
     await act(async () => {
       vi.advanceTimersByTime(15 * 60_000 + 500);
     });
     await user.click(await screen.findByRole("button", { name: /publicar no feed/i }));
-    expect(await screen.findByRole("link", { name: /feed/i })).toHaveAttribute("aria-current", "page");
+    expect(await screen.findByRole("status")).toHaveTextContent(/\+30 moedas/);
+    expect(screen.getByRole("link", { name: /feed/i })).toHaveAttribute("aria-current", "page");
     const { items } = await services.posts.list();
     const session = (await services.sessions.list())[0];
-    expect(items.find((p) => p.sessionId === session.id)).toMatchObject({ type: "text" });
+    const post = items.find((p) => p.sessionId === session.id);
+    expect(post).toMatchObject({ type: "text", title: expect.stringMatching(/^O que aprendi sobre /) });
+    expect(await screen.findByRole("heading", { name: post!.title })).toBeInTheDocument();
   });
 
   it("o timer continua na leitura e volta ao estudo quando o ciclo termina", async () => {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { ArrowLeft, Bookmark, Heart, MessageCircle, Play, Send } from "lucide-react";
 import { BRAND } from "@/domain/brand";
 import { formatRecTime, relativeTime } from "@/domain/format";
@@ -143,8 +143,11 @@ export function PostPage() {
   const { postId = "" } = useParams();
   const services = useServices();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const user = useCurrentUser();
+  // Moedas ganhas ao publicar (vêm do estudo via estado da navegação).
+  const coinsEarned = (location.state as { coinsEarned?: number } | null)?.coinsEarned ?? 0;
 
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -246,6 +249,21 @@ export function PostPage() {
           />
         </button>
       </div>
+
+      {coinsEarned > 0 && (
+        <div
+          role="status"
+          className="rounded-2xl px-4 py-3 mb-6 flex items-center gap-2"
+          style={{ background: `${BRAND.green}14`, border: `1px solid ${BRAND.green}40` }}
+        >
+          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: BRAND.green }}>
+            Post publicado!
+          </span>
+          <span style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, color: BRAND.yellow }}>
+            +{coinsEarned} moedas
+          </span>
+        </div>
+      )}
 
       {/* Post body */}
       <div className="bg-card rounded-2xl p-6 mb-6" style={{ border: "1px solid var(--border)" }}>

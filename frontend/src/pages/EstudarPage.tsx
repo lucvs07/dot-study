@@ -25,7 +25,9 @@ import { FreeSessionSummary } from "@/components/FreeSessionSummary";
 import { LoadingState } from "@/components/LoadingState";
 import { articlesForTheme } from "@/content/articleData";
 import { useStudy } from "@/content/StudyContext";
-import { PostPublisher, useLegacyState, type FeedArticle, type PublisherChallenge } from "@/app/App";
+import { DotAvatar } from "@/components/DotAvatar";
+import { PostPublisher } from "@/components/PostPublisher";
+import { useLegacyState } from "@/app/App";
 import { queryKeys } from "@/app/queryKeys";
 import { useServices } from "@/services/ServicesContext";
 import type { SessionMode } from "@/services/contracts";
@@ -35,6 +37,64 @@ const SRC_COLORS: Record<string, string> = {
   "Semantic Scholar": "#1D4ED8",
   CORE: "#065F46",
 };
+
+type ActiveChallenge = {
+  subject: { name: string; color: string; icon: React.ElementType };
+  theme: string;
+};
+
+/** Cabeçalho da fase de publicação: ciclo concluído e moedas ganhas nele. */
+function SessionCompleteHeader({
+  challenge,
+  coinsEarned,
+  dotColor,
+  activeAccessory,
+}: {
+  challenge: ActiveChallenge;
+  coinsEarned: number;
+  dotColor: string;
+  activeAccessory: string | null;
+}) {
+  return (
+    <div className="w-full rounded-2xl p-5" style={{ background: "var(--muted)", maxWidth: 532 }}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center"
+            style={{ background: `${BRAND.green}22` }}
+          >
+            <Check size={18} color={BRAND.green} strokeWidth={3} />
+          </div>
+          <div>
+            <p style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: "1rem", color: BRAND.green }}>
+              Sessão concluída! <span style={{ color: BRAND.yellow }}>+{coinsEarned} moedas</span>
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <span style={{ color: challenge.subject.color }}>
+                <challenge.subject.icon size={16} />
+              </span>
+              <span style={{ fontFamily: "Inter", fontSize: "0.78rem", color: "var(--muted-foreground)" }}>
+                {challenge.subject.name}
+              </span>
+              <span style={{ color: "#4B5563" }}>·</span>
+              <span
+                style={{
+                  fontFamily: "'Outfit', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "0.88rem",
+                  color: "var(--foreground)",
+                }}
+              >
+                {challenge.theme}
+              </span>
+            </div>
+          </div>
+        </div>
+        <DotAvatar color={dotColor} accessory={activeAccessory} size={48} />
+      </div>
+    </div>
+  );
+}
 
 export function EstudarPage() {
   const services = useServices();
@@ -57,7 +117,6 @@ export function EstudarPage() {
   const [freeBreak, setFreeBreak] = useState(5);
   const [freeSessionCount, setFreeSessionCount] = useState(2);
   const [starting, setStarting] = useState(false);
-  const [publishError, setPublishError] = useState<unknown>(null);
 
   const timerMode: SessionMode = session?.mode ?? modeChoice;
   const difficulty = difficulties.find((d) => d.id === difficultyId) ?? difficulties[0];
@@ -67,7 +126,7 @@ export function EstudarPage() {
   );
 
   // Assunto e tema do desafio derivados da sessão real (sobrevivem à ida para a leitura).
-  const active = useMemo<PublisherChallenge | null>(() => {
+  const active = useMemo<ActiveChallenge | null>(() => {
     if (!session || session.mode !== "challenge") return null;
     const subject = subjects.find((s) => s.id === session.subjectId);
     const theme = subject?.themes.find((t) => t.id === session.themeId);
@@ -134,31 +193,14 @@ export function EstudarPage() {
     study.endSession();
   };
 
-  const handlePublish = async (article: FeedArticle) => {
-    if (!session) return;
-    setPublishError(null);
-    try {
-      // Mídia real só na Task 14: por ora todo post vai como texto.
-      await services.posts.create({
-        sessionId: session.id,
-        type: "text",
-        title: article.title,
-        content: article.excerpt,
-      });
-    } catch (e) {
-      setPublishError(e);
-      return;
-    }
+  const handlePublished = ({ postId, coinsEarned }: { postId: string; coinsEarned: number }) => {
     void queryClient.invalidateQueries({ queryKey: ["posts"] });
     void study.invalidateProgress();
     study.endSession();
-    navigate("/feed");
+    navigate(`/feed/${postId}`, { state: coinsEarned > 0 ? { coinsEarned } : null });
   };
 
-  const handleSkip = () => {
-    setPublishError(null);
-    study.endSession();
-  };
+  const handleSkip = () => study.endSession();
 
   if (subjectsQuery.isLoading) return <LoadingState />;
   if (subjectsQuery.error)
@@ -538,17 +580,17 @@ export function EstudarPage() {
           {/* Publishing */}
           {phase === "publishing" && active && (
             <div className="flex flex-col items-center p-8">
-              {publishError != null && (
-                <div className="w-full" style={{ maxWidth: 580 }}>
-                  <ErrorMessage error={publishError} />
-                </div>
-              )}
-              <PostPublisher
+              <SessionCompleteHeader
                 challenge={active}
                 coinsEarned={study.reward?.coinsEarned ?? COINS.cycle}
                 dotColor={dotColor}
                 activeAccessory={activeAccessory}
-                onPublish={handlePublish}
+              />
+              <PostPublisher
+                sessionId={session?.id ?? null}
+                theme={active.theme}
+                accentColor={active.subject.color}
+                onPublished={handlePublished}
                 onSkip={handleSkip}
               />
             </div>
