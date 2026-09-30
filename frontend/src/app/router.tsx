@@ -9,7 +9,9 @@ import { RankingPage } from "@/pages/RankingPage";
 import { EstudarPage } from "@/pages/EstudarPage";
 import { LeituraListaPage } from "@/pages/LeituraListaPage";
 import { LeituraPage } from "@/pages/LeituraPage";
-import { FeedView, PostDetailView, SettingsView, ShopView } from "./App";
+import { FeedPage } from "@/pages/FeedPage";
+import { PostPage } from "@/pages/PostPage";
+import { SettingsView, ShopView } from "./App";
 
 export function AppRoutes() {
   return (
@@ -22,9 +24,8 @@ export function AppRoutes() {
           <Route path="estudar" element={<EstudarPage />} />
           <Route path="leitura" element={<LeituraListaPage />} />
           <Route path="leitura/:id" element={<LeituraPage />} />
-          <Route path="feed" element={<FeedView />} />
-          {/* LEGADO: removido na Task 15 — rotas das views do protótipo ainda sem página própria */}
-          <Route path="feed/post" element={<PostDetailView />} />
+          <Route path="feed" element={<FeedPage />} />
+          <Route path="feed/:postId" element={<PostPage />} />
           <Route path="ranking" element={<RankingPage />} />
           <Route path="historico" element={<HistoricoPage />} />
           <Route path="loja" element={<ShopView />} />

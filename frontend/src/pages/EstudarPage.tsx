@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import {
   BookOpen,
@@ -39,9 +39,10 @@ const SRC_COLORS: Record<string, string> = {
 export function EstudarPage() {
   const services = useServices();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const study = useStudy();
-  // LEGADO: cor/acessório com as sobrescritas locais da loja e o feed em memória (Tasks 13–15).
-  const { dotColor, activeAccessory, addArticle } = useLegacyState();
+  // LEGADO: cor/acessório com as sobrescritas locais da loja (Tasks 14–15).
+  const { dotColor, activeAccessory } = useLegacyState();
   const { countdown, session, phase } = study;
 
   const subjectsQuery = useQuery({ queryKey: queryKeys.subjects, queryFn: () => services.subjects.list() });
@@ -148,7 +149,7 @@ export function EstudarPage() {
       setPublishError(e);
       return;
     }
-    addArticle(article); // LEGADO: o FeedView antigo lê do estado em memória (Task 13).
+    void queryClient.invalidateQueries({ queryKey: ["posts"] });
     void study.invalidateProgress();
     study.endSession();
     navigate("/feed");
