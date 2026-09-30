@@ -27,8 +27,18 @@ export function SpotifyPlayer() {
 
   const embedRef = useRef<HTMLDivElement>(null);
   const controllerRef = useRef<EmbedController | null>(null);
+  const mountedRef = useRef(true);
 
   const activeEntry = playlists.find((p) => p.uri === active);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      controllerRef.current?.destroy();
+      controllerRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!connected) return;
@@ -62,11 +72,17 @@ export function SpotifyPlayer() {
     if (!embedRef.current) return null;
     try {
       const controller = await createController(embedRef.current, active);
+      if (!mountedRef.current) {
+        // O componente desmontou enquanto o iFrame API carregava (ex.: logout):
+        // não deixamos um controller (e seu listener) vivo fora do ciclo de vida do componente.
+        controller.destroy();
+        return null;
+      }
       controller.addListener("playback_update", (e) => setIsPaused(e.data.isPaused));
       controllerRef.current = controller;
       return controller;
     } catch {
-      setNotice("Não foi possível carregar o player do Spotify.");
+      if (mountedRef.current) setNotice("Não foi possível carregar o player do Spotify.");
       return null;
     }
   }

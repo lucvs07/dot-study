@@ -24,6 +24,14 @@ export function SpotifyCallbackPage() {
     } catch {
       saved = null;
     }
+    // O verifier/state é de uso único: sai do sessionStorage aqui, antes de qualquer
+    // desfecho (sucesso, state divergente ou falha na troca do code), para não sobrar
+    // uma tentativa de PKCE velha caso o usuário refaça o fluxo.
+    try {
+      sessionStorage.removeItem(PKCE_KEY);
+    } catch {
+      // sem storage disponível: não há o que limpar.
+    }
 
     if (oauthError || !code || !state || !saved || state !== saved.state) {
       setError(CANCELLED);
@@ -39,11 +47,6 @@ export function SpotifyCallbackPage() {
     exchangeCode({ clientId, code, verifier: saved.verifier, redirectUri: `${location.origin}/spotify/callback` })
       .then((token) => {
         saveToken(token);
-        try {
-          sessionStorage.removeItem(PKCE_KEY);
-        } catch {
-          // sem storage disponível: não há o que limpar.
-        }
         navigate("/", { replace: true });
       })
       .catch((err: unknown) => setError(err));
