@@ -3,18 +3,10 @@ import { AppLayout } from "./AppLayout";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { LoginPage } from "@/pages/LoginPage";
 import { CadastroPage } from "@/pages/CadastroPage";
-import {
-  ArticlesView,
-  DashboardView,
-  FeedView,
-  HistoryView,
-  PostDetailView,
-  RankingView,
-  ReaderView,
-  SettingsView,
-  ShopView,
-  TimerView,
-} from "./App";
+import { DashboardPage } from "@/pages/DashboardPage";
+import { HistoricoPage } from "@/pages/HistoricoPage";
+import { RankingPage } from "@/pages/RankingPage";
+import { ArticlesView, FeedView, PostDetailView, ReaderView, SettingsView, ShopView, TimerView } from "./App";
 
 export function AppRoutes() {
   return (
@@ -23,15 +15,15 @@ export function AppRoutes() {
       <Route path="/cadastro" element={<CadastroPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
-          <Route index element={<DashboardView />} />
+          <Route index element={<DashboardPage />} />
           <Route path="estudar" element={<TimerView />} />
           <Route path="feed" element={<FeedView />} />
           {/* LEGADO: removido na Task 15 — rotas das views do protótipo ainda sem página própria */}
           <Route path="feed/post" element={<PostDetailView />} />
           <Route path="leitura" element={<ArticlesView />} />
           <Route path="leitura/artigo" element={<ReaderView />} />
-          <Route path="ranking" element={<RankingView />} />
-          <Route path="historico" element={<HistoryView />} />
+          <Route path="ranking" element={<RankingPage />} />
+          <Route path="historico" element={<HistoricoPage />} />
           <Route path="loja" element={<ShopView />} />
           <Route path="ajustes" element={<SettingsView />} />
         </Route>
