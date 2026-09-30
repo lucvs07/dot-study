@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+/* eslint-disable react-refresh/only-export-components -- LEGADO: removido na Task 15 (exporta views, hook e ROUTE_OF) */
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { Navigate, useNavigate } from "react-router";
 import {
   BookOpen,
   Timer,
-  Rss,
   Trophy,
-  History,
   Play,
   Pause,
   RotateCcw,
@@ -22,11 +22,6 @@ import {
   Square,
   Video,
   Send,
-  SkipBack,
-  SkipForward,
-  Music,
-  ChevronUp,
-  ListMusic,
   ArrowLeft,
   Sigma,
   Atom,
@@ -38,7 +33,6 @@ import {
   Clock,
   Hexagon,
   Medal,
-  Settings,
   Moon,
   Sun,
   User,
@@ -50,8 +44,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { ArticlesView } from "./components/ArticlesView";
-import { ReaderView } from "./components/ReaderView";
+import { ArticlesView as ArticlesViewLegacy } from "./components/ArticlesView";
+import { ReaderView as ReaderViewLegacy } from "./components/ReaderView";
 import type { Article } from "./components/articleData";
 import { BRAND, DOT_COLORS } from "@/domain/brand";
 import { formatTotalTime, formatRecTime, getDateLabel } from "@/domain/format";
@@ -63,6 +57,8 @@ import { AudioWave } from "@/components/AudioWave";
 import { FloatingTimer } from "@/components/FloatingTimer";
 import { FreeSessionSummary } from "@/components/FreeSessionSummary";
 import { ChartTooltip } from "@/components/ChartTooltip";
+import { useCurrentUser } from "@/hooks/useAuth";
+import { applyTheme, readTheme } from "./providers";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -1023,241 +1019,9 @@ function PostPublisher({
   );
 }
 
-// ── BottomNav ────────────────────────────────────────────────────────────────
-// ── BottomNav ────────────────────────────────────────────────────────────────
-
-const SPOTIFY_PLAYLISTS = [
-  { id: "p1", name: "Lofi Focus", tracks: ["Rainy Study", "Late Night Coffee", "Tokyo Vibes"] },
-  { id: "p2", name: "Deep Work", tracks: ["Ambient Alpha", "White Noise", "Binaural Beats"] },
-  { id: "p3", name: "Synthwave", tracks: ["Neon Nights", "Cyberpunk Study", "Retro Grid"] },
-];
-
-function BottomNav({
-  view,
-  setView,
-  dotColor,
-  activeAccessory,
-  coins,
-}: {
-  view: View;
-  setView: (v: View) => void;
-  dotColor: string;
-  activeAccessory: string | null;
-  coins: number;
-}) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [spotifyConnected, setSpotifyConnected] = useState(false);
-  const [showPlaylists, setShowPlaylists] = useState(false);
-  const [activePlaylist, setActivePlaylist] = useState<string | null>(null);
-  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-
-  const activePlaylistData = SPOTIFY_PLAYLISTS.find((p) => p.id === activePlaylist);
-  const trackName = activePlaylistData ? activePlaylistData.tracks[currentTrackIndex] : "Lofi Beats to Study to";
-
-  const nextTrack = () => {
-    if (activePlaylistData) {
-      setCurrentTrackIndex((prev) => (prev + 1) % activePlaylistData.tracks.length);
-    }
-  };
-
-  const prevTrack = () => {
-    if (activePlaylistData) {
-      setCurrentTrackIndex((prev) => (prev - 1 + activePlaylistData.tracks.length) % activePlaylistData.tracks.length);
-    }
-  };
-
-  const nav = [
-    { id: "dashboard" as View, icon: BookOpen, label: "Início" },
-    { id: "timer" as View, icon: Timer, label: "Estudar" },
-    { id: "feed" as View, icon: Rss, label: "Feed" },
-    { id: "ranking" as View, icon: Trophy, label: "Ranking" },
-    { id: "history" as View, icon: History, label: "Histórico" },
-    { id: "settings" as View, icon: Settings, label: "Ajustes" },
-  ];
-
-  return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center bg-card rounded-2xl shadow-2xl p-2 gap-4 border border-border z-50 transition-colors">
-      {/* Brand & Shop */}
-      <div className="flex items-center gap-3 pl-2 pr-4 border-r border-border">
-        <button onClick={() => setView("dashboard")} className="flex items-center">
-          <span
-            style={{
-              fontFamily: "'Cal Sans', 'Outfit', sans-serif",
-              lineHeight: 1,
-              display: "flex",
-              alignItems: "baseline",
-            }}
-          >
-            <span style={{ fontSize: "1.5rem", color: "var(--foreground)", fontWeight: 600 }}>.</span>
-            <span style={{ fontSize: "1.1rem", color: dotColor, fontWeight: 600, letterSpacing: "-0.02em" }}>
-              study
-            </span>
-          </span>
-        </button>
-        <button
-          onClick={() => setView("shop")}
-          className="transition-transform hover:scale-105 flex items-center gap-2 bg-muted rounded-full pr-3"
-        >
-          <DotAvatar color={dotColor} accessory={activeAccessory} size={28} />
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "0.75rem",
-              color: BRAND.yellow,
-              fontWeight: 700,
-            }}
-          >
-            {coins}
-          </span>
-        </button>
-      </div>
-
-      {/* Nav Links */}
-      <div className="flex items-center gap-1">
-        {nav.map(({ id, icon: Icon, label }) => (
-          <button
-            key={id}
-            onClick={() => setView(id)}
-            className="flex flex-col items-center justify-center w-14 h-12 rounded-xl transition-all duration-150"
-            style={{
-              background: view === id ? `${dotColor}22` : "transparent",
-              color: view === id ? dotColor : "var(--muted-foreground)",
-            }}
-          >
-            <Icon size={18} className="mb-1" />
-            <span style={{ fontSize: "0.55rem", fontFamily: "Inter", fontWeight: 500 }}>{label}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Music Player */}
-      <div className="flex items-center gap-3 pl-4 border-l border-border relative">
-        <div className="flex items-center gap-2">
-          {!spotifyConnected ? (
-            <button
-              onClick={() => setSpotifyConnected(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1DB954]/10 text-[#1DB954] hover:bg-[#1DB954]/20 transition-colors text-xs font-semibold"
-            >
-              <Music size={14} />
-              Connect
-            </button>
-          ) : (
-            <button
-              onClick={() => setShowPlaylists(!showPlaylists)}
-              className="flex items-center gap-1.5 px-2 py-1.5 rounded-full text-foreground hover:bg-muted transition-colors text-xs font-medium bg-muted"
-            >
-              <ListMusic size={14} />
-              <ChevronUp size={12} className={`transition-transform ${showPlaylists ? "rotate-180" : ""}`} />
-            </button>
-          )}
-
-          <div className="flex flex-col w-28">
-            <span className="text-[10px] text-muted-foreground font-medium truncate uppercase tracking-wider">
-              {activePlaylistData ? activePlaylistData.name : "Native Player"}
-            </span>
-            <span className="text-xs text-foreground font-medium truncate">{trackName}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <button onClick={prevTrack} className="hover:text-foreground transition-colors p-1">
-              <SkipBack size={14} fill="currentColor" />
-            </button>
-            <button
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="text-card bg-foreground hover:opacity-80 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-            >
-              {isPlaying ? (
-                <Pause size={14} fill="currentColor" />
-              ) : (
-                <Play size={14} fill="currentColor" className="ml-0.5" />
-              )}
-            </button>
-            <button onClick={nextTrack} className="hover:text-foreground transition-colors p-1">
-              <SkipForward size={14} fill="currentColor" />
-            </button>
-          </div>
-        </div>
-
-        {/* Spotify Playlists Dropdown */}
-        {spotifyConnected && showPlaylists && (
-          <div className="absolute bottom-[calc(100%+16px)] right-0 w-56 bg-popover border border-border rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2">
-            {!activePlaylist ? (
-              <>
-                <div className="p-3 border-b border-border bg-card">
-                  <h3 className="text-xs font-semibold text-foreground flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#1DB954]"></div>
-                    Spotify Playlists
-                  </h3>
-                </div>
-                <div className="max-h-48 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
-                  {SPOTIFY_PLAYLISTS.map((playlist) => (
-                    <button
-                      key={playlist.id}
-                      className="w-full flex items-center justify-between px-3 py-3 text-left hover:bg-muted transition-colors"
-                      onClick={() => {
-                        setActivePlaylist(playlist.id);
-                        setCurrentTrackIndex(0);
-                      }}
-                    >
-                      <span className="text-sm text-foreground font-medium">{playlist.name}</span>
-                      <ChevronRight size={14} className="text-muted-foreground" />
-                    </button>
-                  ))}
-                </div>
-                <div className="p-2 border-t border-border">
-                  <button
-                    onClick={() => {
-                      setSpotifyConnected(false);
-                      setShowPlaylists(false);
-                      setActivePlaylist(null);
-                      setIsPlaying(false);
-                    }}
-                    className="w-full text-center text-[10px] text-muted-foreground hover:text-foreground py-1 transition-colors"
-                  >
-                    Disconnect Spotify
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="p-3 border-b border-border bg-card flex items-center gap-2">
-                  <button
-                    onClick={() => setActivePlaylist(null)}
-                    className="p-1 hover:bg-muted rounded-md text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <ArrowLeft size={14} />
-                  </button>
-                  <h3 className="text-xs font-semibold text-[#1DB954] truncate">
-                    {SPOTIFY_PLAYLISTS.find((p) => p.id === activePlaylist)?.name}
-                  </h3>
-                </div>
-                <div className="max-h-48 overflow-y-auto bg-card py-1" style={{ scrollbarWidth: "none" }}>
-                  {SPOTIFY_PLAYLISTS.find((p) => p.id === activePlaylist)?.tracks.map((track, i) => (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        setCurrentTrackIndex(i);
-                        setIsPlaying(true);
-                      }}
-                      className={`w-full flex items-center gap-2 px-4 py-2 text-xs hover:bg-muted transition-colors ${currentTrackIndex === i ? "text-[#1DB954]" : "text-muted-foreground"}`}
-                    >
-                      <span className="w-4 text-right text-[10px] opacity-50">{i + 1}</span>
-                      <span className="truncate">{track}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ── DashboardView ──────────────────────────────────────────────────────────
 
-function DashboardView({
+function DashboardViewLegacy({
   setView,
   sessions,
   dotColor,
@@ -1527,7 +1291,7 @@ type DifficultyId = (typeof DIFFICULTY_PRESETS)[number]["id"];
 
 // ── TimerView ──────────────────────────────────────────────────────────────
 
-function TimerView({
+function TimerViewLegacy({
   setCoins,
   addSession,
   addArticle,
@@ -2453,7 +2217,7 @@ function TimerView({
 
 const POST_TYPE_ICON: Record<PostType, React.ElementType> = { text: PenLine, audio: Mic, video: Video };
 
-function FeedView({
+function FeedViewLegacy({
   articles,
   setArticles,
   setSelectedPost,
@@ -2708,7 +2472,7 @@ function FeedView({
 
 // ── RankingView ────────────────────────────────────────────────────────────
 
-function RankingView({ dotColor }: { dotColor: string }) {
+function RankingViewLegacy({ dotColor }: { dotColor: string }) {
   const [activeSubject, setActiveSubject] = useState(1);
   const entries = RANKINGS[activeSubject] ?? [];
   const top3 = entries.slice(0, 3);
@@ -2858,7 +2622,7 @@ function RankingView({ dotColor }: { dotColor: string }) {
 
 // ── HistoryView ────────────────────────────────────────────────────────────
 
-function HistoryView({
+function HistoryViewLegacy({
   sessions,
   setView,
   dotColor,
@@ -3161,7 +2925,7 @@ function HistoryView({
 
 // ── ShopView ───────────────────────────────────────────────────────────────
 
-function ShopView({
+function ShopViewLegacy({
   dotColor,
   setDotColor,
   activeAccessory,
@@ -3413,7 +3177,7 @@ const INITIAL_COMMENTS: Comment[] = [
   },
 ];
 
-function PostDetailView({
+function PostDetailViewLegacy({
   post,
   dotColor,
   activeAccessory,
@@ -3848,7 +3612,7 @@ function PostDetailView({
 
 // ── SettingsView ───────────────────────────────────────────────────────────
 
-function SettingsView({
+function SettingsViewLegacy({
   userName,
   setUserName,
   theme,
@@ -4326,90 +4090,236 @@ function SettingsView({
   );
 }
 
-export default function App() {
-  const [view, setView] = useState<View>("dashboard");
-  const [dotColor, setDotColor] = useState<string>(BRAND.teal);
-  const [userName, setUserName] = useState("Guilherme");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+// ── LEGADO: removido na Task 15 ────────────────────────────────────────────
+// Ponte temporária: os estados que viviam em `export default function App` agora
+// ficam num provider montado no AppLayout, e cada view do protótipo ganha um
+// wrapper sem props para ser montada numa rota. As Tasks 11–15 trocam cada
+// wrapper por uma página real em `pages/` e apagam este arquivo.
 
-  useEffect(() => {
-    if (theme === "dark") document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-  }, [theme]);
-  const [activeAccessory, setActiveAccessory] = useState<string | null>(null);
-  const [coins, setCoins] = useState(840);
+export const ROUTE_OF: Record<View, string> = {
+  dashboard: "/",
+  timer: "/estudar",
+  feed: "/feed",
+  ranking: "/ranking",
+  history: "/historico",
+  shop: "/loja",
+  settings: "/ajustes",
+  articles: "/leitura",
+  reader: "/leitura/artigo",
+  "post-detail": "/feed/post",
+};
+
+type ReaderChallenge = { subjectName: string; subjectColor: string; theme: string } | null;
+
+type LegacyState = {
+  // Vindos do usuário logado, com sobrescrita local para as views antigas (loja/ajustes).
+  dotColor: string;
+  setDotColor: (c: string) => void;
+  userName: string;
+  setUserName: (n: string) => void;
+  activeAccessory: string | null;
+  setActiveAccessory: (a: string | null) => void;
+  coins: number;
+  setCoins: React.Dispatch<React.SetStateAction<number>>;
+  theme: "light" | "dark";
+  setTheme: (t: "light" | "dark") => void;
+  unlockedAccessories: string[];
+  setUnlockedAccessories: (a: string[]) => void;
+  sessions: StudySession[];
+  addSession: (s: StudySession) => void;
+  articles: FeedArticle[];
+  setArticles: React.Dispatch<React.SetStateAction<FeedArticle[]>>;
+  addArticle: (a: FeedArticle) => void;
+  readerChallenge: ReaderChallenge;
+  setReaderChallenge: (c: ReaderChallenge) => void;
+  selectedArticle: Article | null;
+  setSelectedArticle: (a: Article | null) => void;
+  selectedPost: FeedArticle | null;
+  setSelectedPost: (p: FeedArticle | null) => void;
+};
+
+const LegacyStateContext = createContext<LegacyState | null>(null);
+
+export function LegacyStateProvider({ children }: { children: ReactNode }) {
+  const user = useCurrentUser();
+  // LEGADO: removido na Task 15 — sobrescritas locais usadas só pelas views antigas.
+  const [dotColorOverride, setDotColor] = useState<string | null>(null);
+  const [userNameOverride, setUserName] = useState<string | null>(null);
+  const [accessoryOverride, setAccessoryOverride] = useState<{ value: string | null } | null>(null);
+  const [coinsOverride, setCoinsOverride] = useState<number | null>(null);
+  const [theme, setThemeState] = useState<"light" | "dark">(readTheme);
   const [unlockedAccessories, setUnlockedAccessories] = useState<string[]>(["hat", "glasses"]);
   const [sessions, setSessions] = useState<StudySession[]>(INITIAL_SESSIONS);
   const [articles, setArticles] = useState<FeedArticle[]>(INITIAL_ARTICLES);
-  const [readerChallenge, setReaderChallenge] = useState<{
-    subjectName: string;
-    subjectColor: string;
-    theme: string;
-  } | null>(null);
+  const [readerChallenge, setReaderChallenge] = useState<ReaderChallenge>(null);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [selectedPost, setSelectedPost] = useState<FeedArticle | null>(null);
 
+  const coins = coinsOverride ?? user.coins;
+  const setCoins = useCallback<React.Dispatch<React.SetStateAction<number>>>(
+    (action) =>
+      setCoinsOverride((prev) => {
+        const base = prev ?? user.coins;
+        return typeof action === "function" ? action(base) : action;
+      }),
+    [user.coins],
+  );
+  const setActiveAccessory = useCallback((a: string | null) => setAccessoryOverride({ value: a }), []);
+  const setTheme = useCallback((t: "light" | "dark") => {
+    setThemeState(t);
+    applyTheme(t);
+  }, []);
   const addSession = useCallback((s: StudySession) => setSessions((prev) => [s, ...prev]), []);
   const addArticle = useCallback((a: FeedArticle) => setArticles((prev) => [a, ...prev]), []);
 
+  const value: LegacyState = {
+    dotColor: dotColorOverride ?? user.dotColor,
+    setDotColor,
+    userName: userNameOverride ?? user.name,
+    setUserName,
+    activeAccessory: accessoryOverride ? accessoryOverride.value : user.activeAccessoryId,
+    setActiveAccessory,
+    coins,
+    setCoins,
+    theme,
+    setTheme,
+    unlockedAccessories,
+    setUnlockedAccessories,
+    sessions,
+    addSession,
+    articles,
+    setArticles,
+    addArticle,
+    readerChallenge,
+    setReaderChallenge,
+    selectedArticle,
+    setSelectedArticle,
+    selectedPost,
+    setSelectedPost,
+  };
+  return <LegacyStateContext.Provider value={value}>{children}</LegacyStateContext.Provider>;
+}
+
+export function useLegacyState(): LegacyState {
+  const value = useContext(LegacyStateContext);
+  if (!value) throw new Error("useLegacyState precisa estar dentro de <LegacyStateProvider>");
+  return value;
+}
+
+/** Troca o antigo `setView(x)` por navegação de rota. */
+function useSetView(): (v: View) => void {
+  const navigate = useNavigate();
+  return useCallback((v: View) => navigate(ROUTE_OF[v]), [navigate]);
+}
+
+export function DashboardView() {
+  const legacy = useLegacyState();
+  const user = useCurrentUser();
+  const setView = useSetView();
   return (
-    <div
-      className="flex flex-col bg-background relative"
-      style={{ minHeight: "100vh", fontFamily: "Inter, sans-serif" }}
-    >
-      <main className="flex-1 overflow-y-auto pb-28" style={{ scrollbarWidth: "none" }}>
-        {view === "dashboard" && (
-          <DashboardView setView={setView} sessions={sessions} dotColor={dotColor} userName={userName} />
-        )}
-        {view === "timer" && (
-          <TimerView
-            setCoins={setCoins}
-            addSession={addSession}
-            addArticle={addArticle}
-            dotColor={dotColor}
-            activeAccessory={activeAccessory}
-            setView={setView}
-            setReaderChallenge={setReaderChallenge}
-            setSelectedArticle={setSelectedArticle}
-          />
-        )}
-        {view === "articles" && (
-          <ArticlesView challenge={readerChallenge} setView={setView} setSelectedArticle={setSelectedArticle} />
-        )}
-        {view === "reader" && selectedArticle && (
-          <ReaderView article={selectedArticle} challenge={readerChallenge} setView={setView} />
-        )}
-        {view === "feed" && (
-          <FeedView articles={articles} setArticles={setArticles} setSelectedPost={setSelectedPost} setView={setView} />
-        )}
-        {view === "post-detail" && selectedPost && (
-          <PostDetailView post={selectedPost} dotColor={dotColor} activeAccessory={activeAccessory} setView={setView} />
-        )}
-        {view === "ranking" && <RankingView dotColor={dotColor} />}
-        {view === "history" && <HistoryView sessions={sessions} setView={setView} dotColor={dotColor} />}
-        {view === "settings" && (
-          <SettingsView
-            userName={userName}
-            setUserName={setUserName}
-            theme={theme}
-            setTheme={setTheme}
-            dotColor={dotColor}
-          />
-        )}
-        {view === "shop" && (
-          <ShopView
-            dotColor={dotColor}
-            setDotColor={setDotColor}
-            activeAccessory={activeAccessory}
-            setActiveAccessory={setActiveAccessory}
-            coins={coins}
-            setCoins={setCoins}
-            unlockedAccessories={unlockedAccessories}
-            setUnlockedAccessories={setUnlockedAccessories}
-          />
-        )}
-      </main>
-      <BottomNav view={view} setView={setView} dotColor={dotColor} activeAccessory={activeAccessory} coins={coins} />
-    </div>
+    <DashboardViewLegacy setView={setView} sessions={legacy.sessions} dotColor={legacy.dotColor} userName={user.name} />
+  );
+}
+
+export function TimerView() {
+  const legacy = useLegacyState();
+  const setView = useSetView();
+  return (
+    <TimerViewLegacy
+      setCoins={legacy.setCoins}
+      addSession={legacy.addSession}
+      addArticle={legacy.addArticle}
+      dotColor={legacy.dotColor}
+      activeAccessory={legacy.activeAccessory}
+      setView={setView}
+      setReaderChallenge={legacy.setReaderChallenge}
+      setSelectedArticle={legacy.setSelectedArticle}
+    />
+  );
+}
+
+export function ArticlesView() {
+  const legacy = useLegacyState();
+  const setView = useSetView();
+  return (
+    <ArticlesViewLegacy
+      challenge={legacy.readerChallenge}
+      setView={setView}
+      setSelectedArticle={legacy.setSelectedArticle}
+    />
+  );
+}
+
+export function ReaderView() {
+  const legacy = useLegacyState();
+  const setView = useSetView();
+  if (!legacy.selectedArticle) return <Navigate to={ROUTE_OF.articles} replace />;
+  return <ReaderViewLegacy article={legacy.selectedArticle} challenge={legacy.readerChallenge} setView={setView} />;
+}
+
+export function FeedView() {
+  const legacy = useLegacyState();
+  const setView = useSetView();
+  return (
+    <FeedViewLegacy
+      articles={legacy.articles}
+      setArticles={legacy.setArticles}
+      setSelectedPost={legacy.setSelectedPost}
+      setView={setView}
+    />
+  );
+}
+
+export function PostDetailView() {
+  const legacy = useLegacyState();
+  const setView = useSetView();
+  if (!legacy.selectedPost) return <Navigate to={ROUTE_OF.feed} replace />;
+  return (
+    <PostDetailViewLegacy
+      post={legacy.selectedPost}
+      dotColor={legacy.dotColor}
+      activeAccessory={legacy.activeAccessory}
+      setView={setView}
+    />
+  );
+}
+
+export function RankingView() {
+  const legacy = useLegacyState();
+  return <RankingViewLegacy dotColor={legacy.dotColor} />;
+}
+
+export function HistoryView() {
+  const legacy = useLegacyState();
+  const setView = useSetView();
+  return <HistoryViewLegacy sessions={legacy.sessions} setView={setView} dotColor={legacy.dotColor} />;
+}
+
+export function ShopView() {
+  const legacy = useLegacyState();
+  return (
+    <ShopViewLegacy
+      dotColor={legacy.dotColor}
+      setDotColor={legacy.setDotColor}
+      activeAccessory={legacy.activeAccessory}
+      setActiveAccessory={legacy.setActiveAccessory}
+      coins={legacy.coins}
+      setCoins={legacy.setCoins}
+      unlockedAccessories={legacy.unlockedAccessories}
+      setUnlockedAccessories={legacy.setUnlockedAccessories}
+    />
+  );
+}
+
+export function SettingsView() {
+  const legacy = useLegacyState();
+  return (
+    <SettingsViewLegacy
+      userName={legacy.userName}
+      setUserName={legacy.setUserName}
+      theme={legacy.theme}
+      setTheme={legacy.setTheme}
+      dotColor={legacy.dotColor}
+    />
   );
 }

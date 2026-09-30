@@ -7,3 +7,18 @@ import "fake-indexeddb/auto";
 if (typeof Blob === "undefined" || typeof Blob.prototype.arrayBuffer !== "function") {
   globalThis.Blob = NodeBlob as unknown as typeof Blob;
 }
+
+// Sem `globals: true` o Testing Library não registra a limpeza sozinho: desmonta
+// o que cada teste renderizou para o próximo começar com o DOM vazio.
+if (typeof document !== "undefined") {
+  const { afterEach } = await import("vitest");
+  const { cleanup } = await import("@testing-library/react");
+  afterEach(() => cleanup());
+
+  // O jsdom não tem ResizeObserver; o ResponsiveContainer do recharts precisa dele.
+  globalThis.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
