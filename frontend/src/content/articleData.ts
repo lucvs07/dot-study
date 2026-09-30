@@ -97,3 +97,63 @@ export const MOCK_ARTICLES: Article[] = [
     ],
   },
 ];
+
+/** Artigos gerados para o tema sorteado no desafio (os mesmos do protótipo). */
+export function articlesForTheme(theme: string): Article[] {
+  return [
+    {
+      id: "m1",
+      title: `${theme}: uma visão geral`,
+      titlePt: `${theme}: uma visão geral`,
+      authors: ["A. Silva", "B. Costa"],
+      year: 2023,
+      source: "Semantic Scholar",
+      readTime: 12,
+      abstractOnly: false,
+      abstract: `This paper presents a comprehensive overview of ${theme}. We examine foundational concepts, recent advances, and open problems in the field. Our analysis synthesizes results from over 200 primary sources and identifies key research directions for the coming decade. The methodology combines systematic literature review with expert interviews and empirical validation across three case studies.`,
+      abstractPt: `Este artigo apresenta uma visão abrangente de ${theme}. Examinamos conceitos fundamentais, avanços recentes e problemas em aberto na área. Nossa análise sintetiza resultados de mais de 200 fontes primárias e identifica direções-chave de pesquisa para a próxima década.`,
+      content: [
+        `The study of ${theme} has undergone significant transformation over the past two decades. Early approaches relied heavily on manual methods and domain expertise, but the advent of computational tools and large-scale datasets has enabled more systematic investigation. We trace this evolution and highlight the key breakthroughs that have shaped current practice.`,
+        `A central challenge in ${theme} is the tension between theoretical guarantees and practical performance. Models that perform well in controlled settings often fail to generalize when applied to real-world data with its attendant noise, distribution shift, and missing values. We survey the techniques developed to bridge this gap, including domain adaptation, robust optimization, and uncertainty quantification.`,
+        `Looking forward, the most promising directions combine insights from multiple subfields. Hybrid approaches that integrate symbolic reasoning with statistical learning have shown particular promise, as have methods that explicitly model the data-generating process rather than treating prediction as a purely empirical exercise.`,
+      ],
+      contentPt: [
+        `O estudo de ${theme} passou por transformação significativa nas últimas duas décadas. Abordagens iniciais dependiam fortemente de métodos manuais e expertise de domínio, mas o advento de ferramentas computacionais possibilitou investigação mais sistemática.`,
+        `Um desafio central é a tensão entre garantias teóricas e desempenho prático. Modelos que funcionam bem em ambientes controlados frequentemente falham ao ser aplicados a dados do mundo real. Apresentamos técnicas desenvolvidas para superar essa lacuna.`,
+        `As direções mais promissoras combinam insights de múltiplas subáreas. Abordagens híbridas que integram raciocínio simbólico com aprendizado estatístico têm mostrado resultados especialmente promissores.`,
+      ],
+    },
+    {
+      id: "m2",
+      title: `Fundamentos de ${theme}`,
+      titlePt: `Fundamentos de ${theme}`,
+      authors: ["C. Mendes", "D. Rodrigues", "E. Santos"],
+      year: 2022,
+      source: "arXiv",
+      readTime: 8,
+      abstractOnly: false,
+      abstract: `We provide a rigorous treatment of the foundational principles underlying ${theme}. Starting from first principles, we derive the core theoretical results and demonstrate their connections to classical results in adjacent fields. Special attention is given to the conditions under which the main theorems apply and the failure modes that arise when these conditions are violated.`,
+      abstractPt: `Fornecemos um tratamento rigoroso dos princípios fundamentais subjacentes a ${theme}. Partindo dos primeiros princípios, derivamos os resultados teóricos centrais e demonstramos suas conexões com resultados clássicos em campos adjacentes.`,
+      content: [
+        `The foundations of ${theme} rest on a small number of core principles that, once understood, illuminate a wide range of seemingly disparate phenomena. In this tutorial, we build up the theory from scratch, assuming only undergraduate-level mathematical maturity.`,
+        `The central result of this section establishes the equivalence between two apparently different formulations. This equivalence is not merely of theoretical interest — it has practical consequences for algorithm design, allowing methods developed in one framework to be translated and applied in the other.`,
+      ],
+      contentPt: [
+        `Os fundamentos de ${theme} repousam em um pequeno número de princípios centrais que, uma vez compreendidos, iluminam uma ampla gama de fenômenos aparentemente díspares. Neste tutorial, construímos a teoria do zero.`,
+        `O resultado central desta seção estabelece a equivalência entre duas formulações aparentemente diferentes. Essa equivalência tem consequências práticas para o design de algoritmos.`,
+      ],
+    },
+    {
+      id: "m3",
+      title: `Avanços recentes em ${theme}`,
+      titlePt: `Avanços recentes em ${theme}`,
+      authors: ["F. Oliveira"],
+      year: 2024,
+      source: "CORE",
+      readTime: 15,
+      abstractOnly: true,
+      abstract: `This survey covers developments in ${theme} from 2020 to 2024. We catalog over 340 papers and organize them into a taxonomy of eight major research threads. For each thread, we identify the key open problems and assess the likelihood of near-term progress. The survey concludes with a discussion of cross-cutting themes and the methodological innovations that have enabled recent progress.`,
+      abstractPt: `Esta revisão cobre desenvolvimentos em ${theme} de 2020 a 2024. Catalogamos mais de 340 artigos e os organizamos em uma taxonomia de oito grandes linhas de pesquisa. Para cada linha, identificamos os principais problemas em aberto e avaliamos a probabilidade de progresso no curto prazo.`,
+    },
+  ];
+}

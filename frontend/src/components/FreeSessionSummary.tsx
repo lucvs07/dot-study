@@ -5,11 +5,14 @@ import { DotAvatar } from "./DotAvatar";
 
 export function FreeSessionSummary({
   totalMinutes,
+  coinsEarned,
   dotColor,
   activeAccessory,
   onDone,
 }: {
   totalMinutes: number;
+  /** Moedas ganhas na sessão (ciclos concluídos × moedas por ciclo). */
+  coinsEarned: number;
   dotColor: string;
   activeAccessory: string | null;
   onDone: (note: string | null) => void;
@@ -36,7 +39,7 @@ export function FreeSessionSummary({
             </div>
             <div>
               <p style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: "1rem", color: BRAND.green }}>
-                Sessão livre concluída! <span style={{ color: BRAND.yellow }}>+25 moedas</span>
+                Sessão livre concluída! <span style={{ color: BRAND.yellow }}>+{coinsEarned} moedas</span>
               </p>
               <p
                 style={{

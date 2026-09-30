@@ -1,4 +1,5 @@
 import { ArrowLeft, Lock, Clock, BookOpen } from "lucide-react";
+import { useNavigate } from "react-router";
 import { MOCK_ARTICLES, type Article } from "./articleData";
 
 type ReaderChallenge = {
@@ -15,14 +16,12 @@ const SOURCE_COLORS: Record<string, string> = {
 
 export function ArticlesView({
   challenge,
-  setView,
   setSelectedArticle,
 }: {
   challenge: ReaderChallenge | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setView: (v: any) => void;
   setSelectedArticle: (a: Article) => void;
 }) {
+  const navigate = useNavigate();
   const articles = MOCK_ARTICLES.slice(0, 6);
 
   return (
@@ -30,7 +29,7 @@ export function ArticlesView({
       {/* Header */}
       <div>
         <button
-          onClick={() => setView("timer")}
+          onClick={() => navigate("/estudar")}
           className="flex items-center gap-1.5 mb-5 hover:opacity-70 transition-opacity"
           style={{ fontFamily: "Inter", fontSize: "0.82rem", color: "var(--muted-foreground)" }}
         >
@@ -89,7 +88,7 @@ export function ArticlesView({
             key={article.id}
             onClick={() => {
               setSelectedArticle(article);
-              setView("reader");
+              navigate(`/leitura/${article.id}`);
             }}
             className="text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
             style={{

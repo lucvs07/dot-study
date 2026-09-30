@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { ArrowLeft, Globe, Highlighter, MessageSquare, X, ChevronLeft, Trash2, Check, Pencil } from "lucide-react";
 import type { Article } from "./articleData";
-import type { View } from "../App";
+import { useNavigate } from "react-router";
 
 type Lang = "en" | "pt";
 type AnnType = "highlight" | "comment" | "both";
@@ -698,15 +698,8 @@ function AnnCard({
 
 // ── ReaderView ─────────────────────────────────────────────────────────────
 
-export function ReaderView({
-  article,
-  challenge,
-  setView,
-}: {
-  article: Article;
-  challenge: ReaderChallenge | null;
-  setView: (v: View) => void;
-}) {
+export function ReaderView({ article, challenge }: { article: Article; challenge: ReaderChallenge | null }) {
+  const navigate = useNavigate();
   const [isTranslated, setIsTranslated] = useState(false);
   const lang: Lang = isTranslated ? "pt" : "en";
   const [anns, setAnns] = useState<Annotation[]>([]);
@@ -936,7 +929,7 @@ export function ReaderView({
         style={{ background: "var(--background)", borderBottom: "1px solid var(--border)" }}
       >
         <button
-          onClick={() => setView("timer")}
+          onClick={() => navigate("/estudar")}
           className="flex items-center gap-1.5 mb-4 hover:opacity-70 transition-opacity"
           style={{
             fontFamily: "Inter",

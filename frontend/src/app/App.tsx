@@ -2,20 +2,14 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Navigate, useNavigate } from "react-router";
 import {
-  BookOpen,
-  Trophy,
   Play,
   Pause,
-  RotateCcw,
   Heart,
   MessageCircle,
   Bookmark,
-  ChevronRight,
   Lock,
   Check,
   PenLine,
-  Shuffle,
-  Sparkles,
   Mic,
   Square,
   Video,
@@ -27,7 +21,6 @@ import {
   PenTool,
   Code,
   Coffee,
-  Clock,
   Hexagon,
   Moon,
   Sun,
@@ -39,47 +32,17 @@ import {
   LogOut,
   Trash2,
 } from "lucide-react";
-import { ArticlesView as ArticlesViewLegacy } from "./components/ArticlesView";
-import { ReaderView as ReaderViewLegacy } from "./components/ReaderView";
-import type { Article } from "./components/articleData";
 import { BRAND, DOT_COLORS } from "@/domain/brand";
 import { formatRecTime } from "@/domain/format";
 import { DotAvatar } from "@/components/DotAvatar";
-import { CircularTimer } from "@/components/CircularTimer";
-import { DurationPicker } from "@/components/DurationPicker";
 import { AudioWave } from "@/components/AudioWave";
-import { FloatingTimer } from "@/components/FloatingTimer";
-import { FreeSessionSummary } from "@/components/FreeSessionSummary";
 import { useCurrentUser } from "@/hooks/useAuth";
 import { applyTheme, readTheme } from "./providers";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
-export type View =
-  | "dashboard"
-  | "timer"
-  | "feed"
-  | "ranking"
-  | "history"
-  | "shop"
-  | "settings"
-  | "articles"
-  | "reader"
-  | "post-detail";
-type TimerMode = "challenge" | "free";
-type ChallengePhase = "setup" | "work" | "break" | "publishing";
+export type View = "dashboard" | "timer" | "feed" | "ranking" | "history" | "shop" | "settings" | "post-detail";
 type PostType = "text" | "audio" | "video";
-
-type StudySession = {
-  id: string;
-  mode: TimerMode;
-  subject: string | null;
-  subjectColor: string | null;
-  theme: string | null;
-  workDuration: number;
-  completedAt: Date;
-  note?: string;
-};
 
 type Comment = {
   id: number;
@@ -93,7 +56,7 @@ type Comment = {
   replies: Comment[];
 };
 
-type FeedArticle = {
+export type FeedArticle = {
   id: number;
   author: string;
   dotColor: string;
@@ -120,42 +83,6 @@ const SUBJECTS = [
   { id: 4, name: "Português", icon: PenTool, color: BRAND.purple },
   { id: 5, name: "Programação", icon: Code, color: BRAND.green },
 ];
-
-const THEMES_BY_SUBJECT: Record<number, string[]> = {
-  1: [
-    "Álgebra Linear",
-    "Cálculo Diferencial",
-    "Geometria Analítica",
-    "Probabilidade",
-    "Matrizes e Determinantes",
-    "Funções de Múltiplas Variáveis",
-  ],
-  2: ["Mecânica Clássica", "Eletromagnetismo", "Termodinâmica", "Óptica", "Física Quântica", "Relatividade Especial"],
-  3: [
-    "Brasil Colônia",
-    "Segunda Guerra Mundial",
-    "Revolução Industrial",
-    "Idade Média",
-    "Revolução Francesa",
-    "Primeira República Brasileira",
-  ],
-  4: [
-    "Análise Sintática",
-    "Literatura Brasileira",
-    "Redação Dissertativa",
-    "Figuras de Linguagem",
-    "Modernismo",
-    "Concordância Verbal e Nominal",
-  ],
-  5: [
-    "Algoritmos",
-    "Desenvolvimento Web",
-    "Banco de Dados",
-    "Machine Learning",
-    "Estruturas de Dados",
-    "Sistemas Operacionais",
-  ],
-};
 
 const INITIAL_ARTICLES: FeedArticle[] = [
   {
@@ -242,22 +169,24 @@ const ACCESSORIES_LIST = [
   { id: "shades", name: "Óculos Escuros", cost: 350 },
 ];
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
 // ── PostPublisher ─────────────────────────────────────────────────────────
 
-function PostPublisher({
+export type PublisherChallenge = {
+  subject: { name: string; color: string; icon: React.ElementType };
+  theme: string;
+};
+
+export function PostPublisher({
   challenge,
+  coinsEarned,
   dotColor,
   activeAccessory,
   onPublish,
   onSkip,
 }: {
-  challenge: { subject: (typeof SUBJECTS)[0]; theme: string };
+  challenge: PublisherChallenge;
+  /** Moedas ganhas no ciclo que acabou de ser concluído (vem do serviço). */
+  coinsEarned: number;
   dotColor: string;
   activeAccessory: string | null;
   onPublish: (article: FeedArticle) => void;
@@ -389,7 +318,7 @@ function PostPublisher({
             </div>
             <div>
               <p style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: "1rem", color: BRAND.green }}>
-                Sessão concluída! <span style={{ color: BRAND.yellow }}>+50 moedas</span>
+                Sessão concluída! <span style={{ color: BRAND.yellow }}>+{coinsEarned} moedas</span>
               </p>
               <div className="flex items-center gap-2 mt-1">
                 <span style={{ color: accentColor }}>
@@ -828,946 +757,6 @@ function PostPublisher({
           <Send size={15} /> Publicar no feed
         </button>
       </div>
-    </div>
-  );
-}
-
-const SRC_COLORS: Record<string, string> = {
-  arXiv: "#B91C1C",
-  "Semantic Scholar": "#1D4ED8",
-  CORE: "#065F46",
-};
-
-// ── Challenge difficulty presets ──────────────────────────────────────────
-
-const DIFFICULTY_PRESETS = [
-  { id: "easy", label: "Fácil", minutes: 15, description: "Tema introdutório", color: BRAND.green },
-  { id: "medium", label: "Médio", minutes: 25, description: "Tema intermediário", color: BRAND.yellow },
-  { id: "hard", label: "Difícil", minutes: 40, description: "Tema avançado", color: BRAND.red },
-] as const;
-
-type DifficultyId = (typeof DIFFICULTY_PRESETS)[number]["id"];
-
-// ── TimerView ──────────────────────────────────────────────────────────────
-
-function TimerViewLegacy({
-  setCoins,
-  addSession,
-  addArticle,
-  dotColor,
-  activeAccessory,
-  setView,
-  setReaderChallenge,
-  setSelectedArticle,
-}: {
-  setCoins: React.Dispatch<React.SetStateAction<number>>;
-  addSession: (s: StudySession) => void;
-  addArticle: (a: FeedArticle) => void;
-  dotColor: string;
-  activeAccessory: string | null;
-  setView: (v: View) => void;
-  setReaderChallenge: (c: { subjectName: string; subjectColor: string; theme: string } | null) => void;
-  setSelectedArticle: (a: Article | null) => void;
-}) {
-  const [timerMode, setTimerMode] = useState<TimerMode>("challenge");
-
-  // ── Challenge state ────────────────────────────────────────────────────
-  const [difficultyId, setDifficultyId] = useState<DifficultyId>("medium");
-  const [selectedSubjectId, setSelectedSubjectId] = useState<number | "random" | null>(null);
-  const [challengePhase, setChallengePhase] = useState<ChallengePhase>("setup");
-  const [activeChallenge, setActiveChallenge] = useState<{ subject: (typeof SUBJECTS)[0]; theme: string } | null>(null);
-
-  const difficulty = DIFFICULTY_PRESETS.find((d) => d.id === difficultyId)!;
-  const workDuration = difficulty.minutes;
-
-  // ── Timer ──────────────────────────────────────────────────────────────
-  const [timeLeft, setTimeLeft] = useState(workDuration * 60);
-  const [isRunning, setIsRunning] = useState(false);
-
-  // ── Free mode ──────────────────────────────────────────────────────────
-  const [freeRunning, setFreeRunning] = useState(false);
-  const [freeLabel, setFreeLabel] = useState("");
-  const [freeDuration, setFreeDuration] = useState(25);
-  const [freeBreak, setFreeBreak] = useState(5);
-  const [freeSessionCount, setFreeSessionCount] = useState(2);
-  const [freeSessionsDone, setFreeSessionsDone] = useState(0);
-  const [freePhase, setFreePhase] = useState<"work" | "break">("work");
-  const [notes, setNotes] = useState("");
-  const [isReadingArticle, setIsReadingArticle] = useState(false);
-  const [showReader, setShowReader] = useState(false);
-  const [showFreeSummary, setShowFreeSummary] = useState(false);
-  const [freeSessionMinutes, setFreeSessionMinutes] = useState(0);
-
-  // keep timeLeft in sync when difficulty changes (only in setup)
-  useEffect(() => {
-    if (challengePhase === "setup") setTimeLeft(workDuration * 60);
-  }, [workDuration, challengePhase]);
-
-  useEffect(() => {
-    if (!isRunning) return;
-    const iv = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev > 1) return prev - 1;
-        setIsRunning(false);
-        if (timerMode === "challenge" && challengePhase === "work") {
-          setCoins((c) => c + 50);
-          if (activeChallenge) {
-            addSession({
-              id: Date.now().toString(),
-              mode: "challenge",
-              subject: activeChallenge.subject.name,
-              subjectColor: activeChallenge.subject.color,
-              theme: activeChallenge.theme,
-              workDuration,
-              completedAt: new Date(),
-            });
-          }
-          setChallengePhase("publishing");
-          return 0;
-        }
-        if (timerMode === "free") {
-          if (freePhase === "work") {
-            const done = freeSessionsDone + 1;
-            setFreeSessionsDone(done);
-            setCoins((c) => c + 50);
-            addSession({
-              id: Date.now().toString(),
-              mode: "free",
-              subject: null,
-              subjectColor: null,
-              theme: freeLabel || null,
-              workDuration: freeDuration,
-              completedAt: new Date(),
-            });
-            if (done < freeSessionCount) {
-              setFreePhase("break");
-              return freeBreak * 60;
-            } else {
-              setFreeRunning(false);
-              setFreePhase("work");
-              return freeDuration * 60;
-            }
-          } else {
-            setFreePhase("work");
-            return freeDuration * 60;
-          }
-        }
-        return workDuration * 60;
-      });
-    }, 1000);
-    return () => clearInterval(iv);
-  }, [
-    isRunning,
-    timerMode,
-    challengePhase,
-    workDuration,
-    activeChallenge,
-    addSession,
-    setCoins,
-    freePhase,
-    freeSessionsDone,
-    freeSessionCount,
-    freeDuration,
-    freeBreak,
-    freeLabel,
-  ]);
-
-  const activeColor = activeChallenge?.subject.color ?? dotColor;
-
-  const startChallenge = () => {
-    let subject: (typeof SUBJECTS)[0];
-    if (selectedSubjectId === "random") subject = pickRandom(SUBJECTS);
-    else subject = SUBJECTS.find((s) => s.id === selectedSubjectId)!;
-    const theme = pickRandom(THEMES_BY_SUBJECT[subject.id]);
-    setActiveChallenge({ subject, theme });
-    setReaderChallenge({ subjectName: subject.name, subjectColor: subject.color, theme });
-    setTimeLeft(workDuration * 60);
-    setChallengePhase("work");
-    setIsRunning(true);
-    setShowReader(false);
-  };
-
-  const resetChallenge = () => {
-    setIsRunning(false);
-    setChallengePhase("setup");
-    setActiveChallenge(null);
-    setTimeLeft(workDuration * 60);
-    setShowReader(false);
-    setReaderChallenge(null);
-  };
-
-  const handlePublish = (article: FeedArticle) => {
-    addArticle(article);
-    resetChallenge();
-  };
-
-  const handleSkip = () => {
-    resetChallenge();
-  };
-
-  const switchMode = (m: TimerMode) => {
-    setTimerMode(m);
-    setIsRunning(false);
-    setChallengePhase("setup");
-    setFreeRunning(false);
-    setActiveChallenge(null);
-    setTimeLeft(workDuration * 60);
-    setShowReader(false);
-  };
-
-  // ── Mock articles for inline reader ──────────────────────────────────
-  const mockArticles: import("./components/articleData").Article[] = activeChallenge
-    ? [
-        {
-          id: "m1",
-          title: `${activeChallenge.theme}: uma visão geral`,
-          titlePt: `${activeChallenge.theme}: uma visão geral`,
-          authors: ["A. Silva", "B. Costa"],
-          year: 2023,
-          source: "Semantic Scholar",
-          readTime: 12,
-          abstractOnly: false,
-          abstract: `This paper presents a comprehensive overview of ${activeChallenge.theme}. We examine foundational concepts, recent advances, and open problems in the field. Our analysis synthesizes results from over 200 primary sources and identifies key research directions for the coming decade. The methodology combines systematic literature review with expert interviews and empirical validation across three case studies.`,
-          abstractPt: `Este artigo apresenta uma visão abrangente de ${activeChallenge.theme}. Examinamos conceitos fundamentais, avanços recentes e problemas em aberto na área. Nossa análise sintetiza resultados de mais de 200 fontes primárias e identifica direções-chave de pesquisa para a próxima década.`,
-          content: [
-            `The study of ${activeChallenge.theme} has undergone significant transformation over the past two decades. Early approaches relied heavily on manual methods and domain expertise, but the advent of computational tools and large-scale datasets has enabled more systematic investigation. We trace this evolution and highlight the key breakthroughs that have shaped current practice.`,
-            `A central challenge in ${activeChallenge.theme} is the tension between theoretical guarantees and practical performance. Models that perform well in controlled settings often fail to generalize when applied to real-world data with its attendant noise, distribution shift, and missing values. We survey the techniques developed to bridge this gap, including domain adaptation, robust optimization, and uncertainty quantification.`,
-            `Looking forward, the most promising directions combine insights from multiple subfields. Hybrid approaches that integrate symbolic reasoning with statistical learning have shown particular promise, as have methods that explicitly model the data-generating process rather than treating prediction as a purely empirical exercise.`,
-          ],
-          contentPt: [
-            `O estudo de ${activeChallenge.theme} passou por transformação significativa nas últimas duas décadas. Abordagens iniciais dependiam fortemente de métodos manuais e expertise de domínio, mas o advento de ferramentas computacionais possibilitou investigação mais sistemática.`,
-            `Um desafio central é a tensão entre garantias teóricas e desempenho prático. Modelos que funcionam bem em ambientes controlados frequentemente falham ao ser aplicados a dados do mundo real. Apresentamos técnicas desenvolvidas para superar essa lacuna.`,
-            `As direções mais promissoras combinam insights de múltiplas subáreas. Abordagens híbridas que integram raciocínio simbólico com aprendizado estatístico têm mostrado resultados especialmente promissores.`,
-          ],
-        },
-        {
-          id: "m2",
-          title: `Fundamentos de ${activeChallenge.theme}`,
-          titlePt: `Fundamentos de ${activeChallenge.theme}`,
-          authors: ["C. Mendes", "D. Rodrigues", "E. Santos"],
-          year: 2022,
-          source: "arXiv",
-          readTime: 8,
-          abstractOnly: false,
-          abstract: `We provide a rigorous treatment of the foundational principles underlying ${activeChallenge.theme}. Starting from first principles, we derive the core theoretical results and demonstrate their connections to classical results in adjacent fields. Special attention is given to the conditions under which the main theorems apply and the failure modes that arise when these conditions are violated.`,
-          abstractPt: `Fornecemos um tratamento rigoroso dos princípios fundamentais subjacentes a ${activeChallenge.theme}. Partindo dos primeiros princípios, derivamos os resultados teóricos centrais e demonstramos suas conexões com resultados clássicos em campos adjacentes.`,
-          content: [
-            `The foundations of ${activeChallenge.theme} rest on a small number of core principles that, once understood, illuminate a wide range of seemingly disparate phenomena. In this tutorial, we build up the theory from scratch, assuming only undergraduate-level mathematical maturity.`,
-            `The central result of this section establishes the equivalence between two apparently different formulations. This equivalence is not merely of theoretical interest — it has practical consequences for algorithm design, allowing methods developed in one framework to be translated and applied in the other.`,
-          ],
-          contentPt: [
-            `Os fundamentos de ${activeChallenge.theme} repousam em um pequeno número de princípios centrais que, uma vez compreendidos, iluminam uma ampla gama de fenômenos aparentemente díspares. Neste tutorial, construímos a teoria do zero.`,
-            `O resultado central desta seção estabelece a equivalência entre duas formulações aparentemente diferentes. Essa equivalência tem consequências práticas para o design de algoritmos.`,
-          ],
-        },
-        {
-          id: "m3",
-          title: `Avanços recentes em ${activeChallenge.theme}`,
-          titlePt: `Avanços recentes em ${activeChallenge.theme}`,
-          authors: ["F. Oliveira"],
-          year: 2024,
-          source: "CORE",
-          readTime: 15,
-          abstractOnly: true,
-          abstract: `This survey covers developments in ${activeChallenge.theme} from 2020 to 2024. We catalog over 340 papers and organize them into a taxonomy of eight major research threads. For each thread, we identify the key open problems and assess the likelihood of near-term progress. The survey concludes with a discussion of cross-cutting themes and the methodological innovations that have enabled recent progress.`,
-          abstractPt: `Esta revisão cobre desenvolvimentos em ${activeChallenge.theme} de 2020 a 2024. Catalogamos mais de 340 artigos e os organizamos em uma taxonomia de oito grandes linhas de pesquisa. Para cada linha, identificamos os principais problemas em aberto e avaliamos a probabilidade de progresso no curto prazo.`,
-        },
-      ]
-    : [];
-
-  return (
-    <div style={{ minHeight: "100vh" }}>
-      {/* Mode tabs */}
-      {challengePhase !== "publishing" && !showReader && (
-        <div className="flex justify-center pt-8 pb-2">
-          <div className="flex rounded-xl overflow-hidden bg-card" style={{ border: "1px solid var(--border)" }}>
-            {(["challenge", "free"] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => switchMode(m)}
-                className="px-6 py-2.5 text-sm transition-colors"
-                style={{
-                  fontFamily: "Inter",
-                  fontWeight: 600,
-                  background: timerMode === m ? BRAND.dark : "transparent",
-                  color: timerMode === m ? "white" : "#6B7280",
-                }}
-              >
-                {m === "challenge" ? (
-                  <>
-                    <Trophy size={14} className="inline mr-1" /> Desafio
-                  </>
-                ) : (
-                  <>
-                    <Clock size={14} className="inline mr-1" /> Livre
-                  </>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── CHALLENGE MODE ── */}
-      {timerMode === "challenge" && (
-        <>
-          {/* ── SETUP ── */}
-          {challengePhase === "setup" && (
-            <div className="flex flex-col items-center p-8 gap-6">
-              <div className="w-full max-w-2xl flex flex-col gap-6">
-                {/* Difficulty */}
-                <div>
-                  <p
-                    style={{
-                      fontFamily: "'Outfit', sans-serif",
-                      fontWeight: 700,
-                      fontSize: "0.95rem",
-                      color: "var(--foreground)",
-                      marginBottom: 14,
-                    }}
-                  >
-                    Dificuldade
-                  </p>
-                  <div className="grid grid-cols-3 gap-3">
-                    {DIFFICULTY_PRESETS.map((d) => (
-                      <button
-                        key={d.id}
-                        onClick={() => setDifficultyId(d.id)}
-                        className="flex flex-col gap-1 p-4 rounded-2xl text-left transition-all hover:scale-[1.02]"
-                        style={{
-                          border: `2.5px solid ${difficultyId === d.id ? d.color : "var(--border)"}`,
-                          background: difficultyId === d.id ? `${d.color}12` : "var(--card)",
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span
-                            style={{
-                              fontFamily: "'Outfit', sans-serif",
-                              fontWeight: 700,
-                              fontSize: "0.9rem",
-                              color: difficultyId === d.id ? d.color : "var(--foreground)",
-                            }}
-                          >
-                            {d.label}
-                          </span>
-                          <span
-                            style={{
-                              fontFamily: "'JetBrains Mono', monospace",
-                              fontSize: "0.78rem",
-                              fontWeight: 700,
-                              color: d.color,
-                            }}
-                          >
-                            {d.minutes}min
-                          </span>
-                        </div>
-                        <span style={{ fontFamily: "Inter", fontSize: "0.7rem", color: "var(--muted-foreground)" }}>
-                          {d.description}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Subject */}
-                <div>
-                  <p
-                    style={{
-                      fontFamily: "'Outfit', sans-serif",
-                      fontWeight: 700,
-                      fontSize: "0.95rem",
-                      color: "var(--foreground)",
-                      marginBottom: 14,
-                    }}
-                  >
-                    Assunto
-                  </p>
-                  <div className="grid grid-cols-3 gap-3">
-                    {SUBJECTS.map((s) => (
-                      <button
-                        key={s.id}
-                        onClick={() => setSelectedSubjectId(s.id)}
-                        className="flex items-center gap-3 p-4 rounded-2xl text-left bg-card transition-all hover:scale-[1.02]"
-                        style={{
-                          border: `2.5px solid ${selectedSubjectId === s.id ? s.color : "var(--border)"}`,
-                          background: selectedSubjectId === s.id ? `${s.color}10` : "var(--card)",
-                        }}
-                      >
-                        <span style={{ color: s.color }}>
-                          <s.icon size={22} />
-                        </span>
-                        <div>
-                          <div
-                            style={{
-                              fontFamily: "'Outfit', sans-serif",
-                              fontWeight: 600,
-                              fontSize: "0.88rem",
-                              color: "var(--foreground)",
-                            }}
-                          >
-                            {s.name}
-                          </div>
-                          <div style={{ fontFamily: "Inter", fontSize: "0.7rem", color: "var(--muted-foreground)" }}>
-                            {THEMES_BY_SUBJECT[s.id].length} temas
-                          </div>
-                        </div>
-                        {selectedSubjectId === s.id && (
-                          <Check size={16} color={s.color} style={{ marginLeft: "auto" }} />
-                        )}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => setSelectedSubjectId("random")}
-                      className="flex items-center gap-3 p-4 rounded-2xl text-left bg-card transition-all hover:scale-[1.02]"
-                      style={{
-                        border: `2.5px solid ${selectedSubjectId === "random" ? BRAND.yellow : "var(--border)"}`,
-                        background: selectedSubjectId === "random" ? `${BRAND.yellow}10` : "var(--card)",
-                      }}
-                    >
-                      <Shuffle size={24} color={BRAND.yellow} />
-                      <div>
-                        <div
-                          style={{
-                            fontFamily: "'Outfit', sans-serif",
-                            fontWeight: 600,
-                            fontSize: "0.88rem",
-                            color: "var(--foreground)",
-                          }}
-                        >
-                          Aleatório
-                        </div>
-                        <div style={{ fontFamily: "Inter", fontSize: "0.7rem", color: "var(--muted-foreground)" }}>
-                          Surpresa total
-                        </div>
-                      </div>
-                      {selectedSubjectId === "random" && (
-                        <Check size={16} color={BRAND.yellow} style={{ marginLeft: "auto" }} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  onClick={startChallenge}
-                  disabled={selectedSubjectId === null}
-                  className="self-center px-10 py-3.5 rounded-2xl font-bold text-base transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{
-                    fontFamily: "'Outfit', sans-serif",
-                    background: "var(--foreground)",
-                    color: "var(--background)",
-                  }}
-                >
-                  Iniciar Desafio →
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* ── WORK phase: timer + articles below ── */}
-          {challengePhase === "work" && activeChallenge && (
-            <div className="flex flex-col items-center gap-6 px-8 pb-20" style={{ width: "100%" }}>
-              {/* Theme card */}
-              <div
-                className="w-full rounded-2xl p-5"
-                style={{ background: "var(--card)", border: "1.5px solid var(--border)" }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles size={13} color={dotColor} />
-                  <span
-                    style={{
-                      fontFamily: "Inter",
-                      fontSize: "0.68rem",
-                      color: dotColor,
-                      fontWeight: 600,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.06em",
-                    }}
-                  >
-                    Tema do desafio
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span style={{ color: activeChallenge.subject.color }}>
-                    <activeChallenge.subject.icon size={24} />
-                  </span>
-                  <div>
-                    <p style={{ fontFamily: "Inter", fontSize: "0.72rem", color: "var(--muted-foreground)" }}>
-                      {activeChallenge.subject.name}
-                    </p>
-                    <p
-                      style={{
-                        fontFamily: "'Outfit', sans-serif",
-                        fontWeight: 700,
-                        fontSize: "1.1rem",
-                        color: "var(--foreground)",
-                      }}
-                    >
-                      {activeChallenge.theme}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Circular timer */}
-              <CircularTimer timeLeft={timeLeft} totalTime={workDuration * 60} color={activeColor} />
-
-              {/* Controls */}
-              <div className="flex items-center gap-5">
-                <button
-                  onClick={resetChallenge}
-                  className="w-12 h-12 rounded-full flex items-center justify-center bg-card hover:bg-muted transition-colors"
-                  style={{ border: "1px solid var(--border)" }}
-                >
-                  <RotateCcw size={17} color="#9CA3AF" />
-                </button>
-                <button
-                  onClick={() => setIsRunning((r) => !r)}
-                  className="w-16 h-16 rounded-full flex items-center justify-center transition-all hover:scale-105"
-                  style={{ background: activeColor }}
-                >
-                  {isRunning ? <Pause size={22} color="#111827" /> : <Play size={22} color="#111827" fill="#111827" />}
-                </button>
-                <div className="w-12 h-12" />
-              </div>
-
-              {/* Article cards */}
-              <div className="w-full">
-                <p
-                  style={{
-                    fontFamily: "'Outfit', sans-serif",
-                    fontWeight: 700,
-                    fontSize: "0.82rem",
-                    color: "var(--foreground)",
-                    marginBottom: 10,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <BookOpen size={13} /> Artigos para leitura
-                </p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {mockArticles.map((a, _i) => (
-                    <button
-                      key={a.id}
-                      onClick={() => {
-                        setReaderChallenge({
-                          subjectName: activeChallenge.subject.name,
-                          subjectColor: activeChallenge.subject.color,
-                          theme: activeChallenge.theme,
-                        });
-                        setSelectedArticle(a);
-                        setIsReadingArticle(true);
-                        setView("reader");
-                      }}
-                      className="text-left rounded-2xl p-4 transition-all hover:scale-[1.01]"
-                      style={{ background: "var(--card)", border: "1.5px solid var(--border)" }}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div style={{ flex: 1 }}>
-                          <p
-                            style={{
-                              fontFamily: "'Outfit', sans-serif",
-                              fontWeight: 600,
-                              fontSize: "0.88rem",
-                              color: "var(--foreground)",
-                              marginBottom: 4,
-                              lineHeight: 1.3,
-                            }}
-                          >
-                            {a.title}
-                          </p>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span
-                              style={{
-                                fontFamily: "Inter",
-                                fontSize: "0.65rem",
-                                fontWeight: 600,
-                                color: SRC_COLORS[a.source] ?? "#374151",
-                                background: `${SRC_COLORS[a.source] ?? "#374151"}14`,
-                                padding: "2px 7px",
-                                borderRadius: 5,
-                              }}
-                            >
-                              {a.source}
-                            </span>
-                            <span
-                              style={{
-                                fontFamily: "'JetBrains Mono', monospace",
-                                fontSize: "0.65rem",
-                                color: "var(--muted-foreground)",
-                              }}
-                            >
-                              {a.year}
-                            </span>
-                            <span
-                              style={{ fontFamily: "Inter", fontSize: "0.65rem", color: "var(--muted-foreground)" }}
-                            >
-                              {a.readTime} min
-                            </span>
-                            {a.abstractOnly && (
-                              <span
-                                style={{
-                                  fontFamily: "Inter",
-                                  fontSize: "0.62rem",
-                                  color: "var(--muted-foreground)",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 3,
-                                }}
-                              >
-                                <BookOpen size={10} /> só resumo
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <ChevronRight
-                          size={16}
-                          color="var(--muted-foreground)"
-                          style={{ flexShrink: 0, marginTop: 2 }}
-                        />
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                onClick={resetChallenge}
-                className="text-sm hover:opacity-60 transition-opacity"
-                style={{ fontFamily: "Inter", color: "var(--muted-foreground)" }}
-              >
-                ← Nova sessão
-              </button>
-            </div>
-          )}
-
-          {/* Publishing */}
-          {challengePhase === "publishing" && activeChallenge && (
-            <div className="flex flex-col items-center p-8">
-              <PostPublisher
-                challenge={activeChallenge}
-                dotColor={dotColor}
-                activeAccessory={activeAccessory}
-                onPublish={handlePublish}
-                onSkip={handleSkip}
-              />
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Floating timer — only while reading an article */}
-      {challengePhase === "work" && activeChallenge && isReadingArticle && (
-        <FloatingTimer
-          timeLeft={timeLeft}
-          totalTime={workDuration * 60}
-          color={activeColor}
-          isRunning={isRunning}
-          onToggle={() => setIsRunning((r) => !r)}
-          theme={activeChallenge.theme}
-          subjectColor={activeChallenge.subject.color}
-        />
-      )}
-
-      {/* ── FREE SESSION SUMMARY ── */}
-      {showFreeSummary && (
-        <FreeSessionSummary
-          totalMinutes={freeSessionMinutes}
-          dotColor={dotColor}
-          activeAccessory={activeAccessory}
-          onDone={(note) => {
-            addSession({
-              id: Date.now().toString(),
-              mode: "free",
-              subject: null,
-              subjectColor: null,
-              theme: freeLabel || null,
-              workDuration: freeSessionMinutes,
-              completedAt: new Date(),
-              ...(note ? { note } : {}),
-            });
-            setCoins((c) => c + 25);
-            setShowFreeSummary(false);
-            setTimeLeft(freeDuration * 60);
-            setFreePhase("work");
-            setFreeSessionsDone(0);
-            setNotes("");
-          }}
-        />
-      )}
-
-      {/* ── FREE MODE ── */}
-      {timerMode === "free" && !showFreeSummary && (
-        <div className="flex flex-col items-center p-8 gap-6 w-full max-w-sm mx-auto">
-          {!freeRunning && (
-            <div
-              className="w-full bg-card rounded-2xl p-6 flex flex-col gap-5"
-              style={{ border: "1px solid var(--border)" }}
-            >
-              <h3
-                style={{
-                  fontFamily: "'Outfit', sans-serif",
-                  fontWeight: 700,
-                  fontSize: "0.95rem",
-                  color: "var(--foreground)",
-                }}
-              >
-                Sessão livre
-              </h3>
-              <DurationPicker
-                label="Foco por sessão"
-                value={freeDuration}
-                onChange={(v) => {
-                  setFreeDuration(v);
-                }}
-                presets={[15, 20, 25, 30, 45, 50]}
-              />
-              <DurationPicker
-                label="Pausa entre sessões"
-                value={freeBreak}
-                onChange={(v) => setFreeBreak(v)}
-                presets={[5, 10, 15]}
-                max={30}
-              />
-              {/* Session count */}
-              <div>
-                <span
-                  style={{
-                    fontFamily: "Inter",
-                    fontWeight: 600,
-                    fontSize: "0.72rem",
-                    color: "var(--muted-foreground)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.04em",
-                    display: "block",
-                    marginBottom: 8,
-                  }}
-                >
-                  Número de sessões
-                </span>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setFreeSessionCount((c) => Math.max(1, c - 1))}
-                    className="w-8 h-8 rounded-full flex items-center justify-center bg-muted hover:bg-border transition-colors"
-                    style={{
-                      border: "1px solid var(--border)",
-                      fontFamily: "Inter",
-                      fontSize: "1.1rem",
-                      color: "var(--foreground)",
-                      fontWeight: 700,
-                    }}
-                  >
-                    −
-                  </button>
-                  <span
-                    style={{
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontSize: "1.2rem",
-                      fontWeight: 700,
-                      color: "var(--foreground)",
-                      minWidth: 24,
-                      textAlign: "center",
-                    }}
-                  >
-                    {freeSessionCount}
-                  </span>
-                  <button
-                    onClick={() => setFreeSessionCount((c) => Math.min(8, c + 1))}
-                    className="w-8 h-8 rounded-full flex items-center justify-center bg-muted hover:bg-border transition-colors"
-                    style={{
-                      border: "1px solid var(--border)",
-                      fontFamily: "Inter",
-                      fontSize: "1.1rem",
-                      color: "var(--foreground)",
-                      fontWeight: 700,
-                    }}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-              {/* Total time summary */}
-              <div
-                className="flex items-center gap-2 rounded-xl px-4 py-3"
-                style={{ background: `${dotColor}10`, border: `1px solid ${dotColor}30` }}
-              >
-                <Clock size={13} color={dotColor} />
-                <span style={{ fontFamily: "Inter", fontSize: "0.78rem", color: dotColor, fontWeight: 600 }}>
-                  {freeSessionCount * freeDuration + (freeSessionCount - 1) * freeBreak} min no total
-                </span>
-                <span
-                  style={{
-                    fontFamily: "Inter",
-                    fontSize: "0.72rem",
-                    color: "var(--muted-foreground)",
-                    marginLeft: "auto",
-                  }}
-                >
-                  {freeSessionCount}×{freeDuration}min + {freeSessionCount - 1}×{freeBreak}min pausa
-                </span>
-              </div>
-              <div>
-                <span
-                  style={{
-                    fontFamily: "Inter",
-                    fontWeight: 600,
-                    fontSize: "0.72rem",
-                    color: "var(--muted-foreground)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.04em",
-                    display: "block",
-                    marginBottom: 8,
-                  }}
-                >
-                  Rótulo (opcional)
-                </span>
-                <input
-                  value={freeLabel}
-                  onChange={(e) => setFreeLabel(e.target.value)}
-                  placeholder="Ex: Revisão de véspera..."
-                  className="w-full rounded-xl px-3 py-2.5 outline-none"
-                  style={{
-                    fontFamily: "Inter",
-                    fontSize: "0.84rem",
-                    color: "var(--foreground)",
-                    background: "var(--muted)",
-                    border: "1px solid var(--border)",
-                  }}
-                />
-              </div>
-              <button
-                onClick={() => {
-                  setFreeRunning(true);
-                  setIsRunning(true);
-                  setTimeLeft(freeDuration * 60);
-                  setFreePhase("work");
-                  setFreeSessionsDone(0);
-                  setNotes("");
-                }}
-                className="w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02]"
-                style={{
-                  fontFamily: "'Outfit', sans-serif",
-                  background: "var(--foreground)",
-                  color: "var(--background)",
-                }}
-              >
-                Começar sessão livre
-              </button>
-            </div>
-          )}
-          {freeRunning && (
-            <>
-              <div
-                className="w-full rounded-2xl p-4"
-                style={{ background: "var(--muted)", border: "1px solid var(--border)" }}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <p style={{ fontFamily: "Inter", fontSize: "0.72rem", color: "var(--muted-foreground)" }}>
-                    {freePhase === "work" ? `Sessão ${freeSessionsDone + 1} de ${freeSessionCount}` : "Pausa"} ·{" "}
-                    {freePhase === "work" ? freeDuration : freeBreak}min
-                  </p>
-                  <span
-                    style={{
-                      fontFamily: "Inter",
-                      fontSize: "0.65rem",
-                      fontWeight: 600,
-                      color: freePhase === "work" ? dotColor : BRAND.green,
-                      background: freePhase === "work" ? `${dotColor}18` : `${BRAND.green}18`,
-                      padding: "2px 7px",
-                      borderRadius: 5,
-                    }}
-                  >
-                    {freePhase === "work" ? "Foco" : "Pausa"}
-                  </span>
-                </div>
-                <p
-                  style={{
-                    fontFamily: "'Outfit', sans-serif",
-                    fontWeight: 700,
-                    fontSize: "0.95rem",
-                    color: "var(--foreground)",
-                  }}
-                >
-                  {freeLabel || "Sem rótulo"}
-                </p>
-              </div>
-              <CircularTimer
-                timeLeft={timeLeft}
-                totalTime={freePhase === "work" ? freeDuration * 60 : freeBreak * 60}
-                color={freePhase === "work" ? dotColor : BRAND.green}
-              />
-              <div className="flex items-center gap-5">
-                <button
-                  onClick={() => {
-                    setIsRunning(false);
-                    setFreeRunning(false);
-                    const elapsedMin =
-                      freeSessionsDone * freeDuration + Math.floor((freeDuration * 60 - timeLeft) / 60);
-                    setFreeSessionMinutes(Math.max(elapsedMin, 1));
-                    setShowFreeSummary(true);
-                  }}
-                  className="w-12 h-12 rounded-full flex items-center justify-center bg-card hover:bg-muted transition-colors"
-                  style={{ border: "1px solid var(--border)" }}
-                >
-                  <RotateCcw size={17} color="#9CA3AF" />
-                </button>
-                <button
-                  onClick={() => setIsRunning((r) => !r)}
-                  className="w-16 h-16 rounded-full flex items-center justify-center transition-all hover:scale-105"
-                  style={{ background: dotColor }}
-                >
-                  {isRunning ? <Pause size={22} color="#111827" /> : <Play size={22} color="#111827" fill="#111827" />}
-                </button>
-              </div>
-              <div className="w-full">
-                <p
-                  style={{
-                    fontFamily: "'Outfit', sans-serif",
-                    fontWeight: 700,
-                    fontSize: "0.82rem",
-                    color: "var(--foreground)",
-                    marginBottom: 8,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <PenLine size={13} /> Anotações
-                </p>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="O que você está aprendendo?"
-                  className="w-full resize-none rounded-xl p-3 outline-none"
-                  style={{
-                    background: "var(--card)",
-                    border: "1px solid var(--border)",
-                    fontFamily: "Inter",
-                    fontSize: "0.82rem",
-                    color: "var(--foreground)",
-                    lineHeight: 1.65,
-                    minHeight: 90,
-                  }}
-                />
-              </div>
-              <button
-                onClick={() => {
-                  setIsRunning(false);
-                  setFreeRunning(false);
-                  setTimeLeft(freeDuration * 60);
-                  setFreePhase("work");
-                  setFreeSessionsDone(0);
-                }}
-                className="text-sm hover:opacity-60 transition-opacity"
-                style={{ fontFamily: "Inter", color: "var(--muted-foreground)" }}
-              >
-                ← Reconfigurar
-              </button>
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -3210,12 +2199,8 @@ export const ROUTE_OF: Record<View, string> = {
   history: "/historico",
   shop: "/loja",
   settings: "/ajustes",
-  articles: "/leitura",
-  reader: "/leitura/artigo",
   "post-detail": "/feed/post",
 };
-
-type ReaderChallenge = { subjectName: string; subjectColor: string; theme: string } | null;
 
 type LegacyState = {
   // Vindos do usuário logado, com sobrescrita local para as views antigas (loja/ajustes).
@@ -3231,15 +2216,9 @@ type LegacyState = {
   setTheme: (t: "light" | "dark") => void;
   unlockedAccessories: string[];
   setUnlockedAccessories: (a: string[]) => void;
-  sessions: StudySession[];
-  addSession: (s: StudySession) => void;
   articles: FeedArticle[];
   setArticles: React.Dispatch<React.SetStateAction<FeedArticle[]>>;
   addArticle: (a: FeedArticle) => void;
-  readerChallenge: ReaderChallenge;
-  setReaderChallenge: (c: ReaderChallenge) => void;
-  selectedArticle: Article | null;
-  setSelectedArticle: (a: Article | null) => void;
   selectedPost: FeedArticle | null;
   setSelectedPost: (p: FeedArticle | null) => void;
 };
@@ -3255,10 +2234,7 @@ export function LegacyStateProvider({ children }: { children: ReactNode }) {
   const [coinsOverride, setCoinsOverride] = useState<number | null>(null);
   const [theme, setThemeState] = useState<"light" | "dark">(readTheme);
   const [unlockedAccessories, setUnlockedAccessories] = useState<string[]>(["hat", "glasses"]);
-  const [sessions, setSessions] = useState<StudySession[]>([]);
   const [articles, setArticles] = useState<FeedArticle[]>(INITIAL_ARTICLES);
-  const [readerChallenge, setReaderChallenge] = useState<ReaderChallenge>(null);
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [selectedPost, setSelectedPost] = useState<FeedArticle | null>(null);
 
   const coins = coinsOverride ?? user.coins;
@@ -3275,7 +2251,6 @@ export function LegacyStateProvider({ children }: { children: ReactNode }) {
     setThemeState(t);
     applyTheme(t);
   }, []);
-  const addSession = useCallback((s: StudySession) => setSessions((prev) => [s, ...prev]), []);
   const addArticle = useCallback((a: FeedArticle) => setArticles((prev) => [a, ...prev]), []);
 
   const value: LegacyState = {
@@ -3291,15 +2266,9 @@ export function LegacyStateProvider({ children }: { children: ReactNode }) {
     setTheme,
     unlockedAccessories,
     setUnlockedAccessories,
-    sessions,
-    addSession,
     articles,
     setArticles,
     addArticle,
-    readerChallenge,
-    setReaderChallenge,
-    selectedArticle,
-    setSelectedArticle,
     selectedPost,
     setSelectedPost,
   };
@@ -3316,42 +2285,6 @@ export function useLegacyState(): LegacyState {
 function useSetView(): (v: View) => void {
   const navigate = useNavigate();
   return useCallback((v: View) => navigate(ROUTE_OF[v]), [navigate]);
-}
-
-export function TimerView() {
-  const legacy = useLegacyState();
-  const setView = useSetView();
-  return (
-    <TimerViewLegacy
-      setCoins={legacy.setCoins}
-      addSession={legacy.addSession}
-      addArticle={legacy.addArticle}
-      dotColor={legacy.dotColor}
-      activeAccessory={legacy.activeAccessory}
-      setView={setView}
-      setReaderChallenge={legacy.setReaderChallenge}
-      setSelectedArticle={legacy.setSelectedArticle}
-    />
-  );
-}
-
-export function ArticlesView() {
-  const legacy = useLegacyState();
-  const setView = useSetView();
-  return (
-    <ArticlesViewLegacy
-      challenge={legacy.readerChallenge}
-      setView={setView}
-      setSelectedArticle={legacy.setSelectedArticle}
-    />
-  );
-}
-
-export function ReaderView() {
-  const legacy = useLegacyState();
-  const setView = useSetView();
-  if (!legacy.selectedArticle) return <Navigate to={ROUTE_OF.articles} replace />;
-  return <ReaderViewLegacy article={legacy.selectedArticle} challenge={legacy.readerChallenge} setView={setView} />;
 }
 
 export function FeedView() {
