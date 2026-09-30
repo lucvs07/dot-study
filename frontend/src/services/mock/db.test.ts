@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MockDb, STORAGE_KEY } from "./db";
-import { createMemoryStorage } from "./storage";
+import { createMemoryStorage, safeStorage, type KeyValueStorage } from "./storage";
 import { ACCESSORIES, SUBJECTS, buildSeed } from "./seed";
 
 describe("MockDb", () => {
@@ -42,6 +42,61 @@ describe("MockDb", () => {
     const db = new MockDb(createMemoryStorage());
     db.read().users.length = 0;
     expect(db.read().users.length).toBeGreaterThan(0);
+  });
+});
+
+describe("localStorage bloqueado", () => {
+  const throwing: KeyValueStorage = {
+    getItem: () => {
+      throw new DOMException("bloqueado", "SecurityError");
+    },
+    setItem: () => {
+      throw new DOMException("bloqueado", "SecurityError");
+    },
+    removeItem: () => {
+      throw new DOMException("bloqueado", "SecurityError");
+    },
+  };
+
+  it("safeStorage cai para memória (com aviso) quando o storage lança, e o banco funciona", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const storage = safeStorage(() => throwing);
+    expect(warn).toHaveBeenCalledTimes(1);
+    const db = new MockDb(storage);
+    db.write((s) => {
+      s.currentUserId = "x";
+    });
+    expect(db.read().currentUserId).toBe("x");
+    expect(db.read().users.length).toBeGreaterThan(0);
+  });
+
+  it("safeStorage cai para memória quando até acessar o storage lança", () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const storage = safeStorage(() => {
+      throw new DOMException("bloqueado", "SecurityError");
+    });
+    storage.setItem("k", "v");
+    expect(storage.getItem("k")).toBe("v");
+  });
+
+  it("safeStorage devolve o próprio storage quando ele funciona", () => {
+    const ok = createMemoryStorage();
+    expect(safeStorage(() => ok)).toBe(ok);
+  });
+
+  it("write que não consegue persistir não altera o estado em memória", () => {
+    const storage = createMemoryStorage();
+    const db = new MockDb(storage);
+    const before = db.read();
+    storage.setItem = () => {
+      throw new DOMException("cheio", "QuotaExceededError");
+    };
+    expect(() =>
+      db.write((s) => {
+        s.currentUserId = "x";
+      }),
+    ).toThrow();
+    expect(db.read()).toEqual(before);
   });
 });
 

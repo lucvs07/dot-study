@@ -97,13 +97,15 @@ export class MockDb {
   write<T>(fn: (draft: DbState) => T): T {
     const draft = structuredClone(this.state);
     const result = fn(draft);
-    this.state = draft;
+    // Grava primeiro: se o storage falhar (ex.: cota cheia), a memória não diverge do que foi salvo.
     this.persist(draft);
+    this.state = draft;
     return result;
   }
 
   reset(): void {
-    this.state = this.seedFactory();
-    this.persist(this.state);
+    const fresh = this.seedFactory();
+    this.persist(fresh);
+    this.state = fresh;
   }
 }
