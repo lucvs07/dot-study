@@ -1,4 +1,4 @@
-# Escopo do Projeto (v1)
+# Escopo do Projeto (versão final — CP6)
 
 ## Dentro do escopo
 
@@ -14,7 +14,7 @@
 - Publicação de posts em áudio e vídeo gravados no navegador (ou envio de arquivo de vídeo)
 - Player do Spotify: embed com playlists de foco curadas para todos, com conexão opcional (PKCE) à conta do usuário
 - Histórico de sessões e estatísticas (sequência de dias, tempo total)
-- Dados mockados (sem persistência real) — protótipo funcional no CP5
+- Persistência real / autenticação real / API real: backend Express + Prisma + PostgreSQL, JWT, upload de mídia (volume local no Docker, Cloudinary no deploy), empacotado em Docker Compose e publicado em Vercel + Render + Neon
 
 ## Fora do escopo (v1)
 
@@ -24,4 +24,3 @@
 - Recuperação de senha por email
 - Curtidas em comentários
 - Reprodução de faixas completas do Spotify via Web Playback SDK (o app fica em modo desenvolvedor no Spotify, com allowlist restrita)
-- Persistência real / API real — entra no CP6
