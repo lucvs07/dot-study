@@ -1,0 +1,47 @@
+{
+  "name": "@dot-study/backend",
+  "private": true,
+  "version": "0.6.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file=.env src/server.ts",
+    "build": "tsup",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint src test --max-warnings=0",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "tsx --env-file=.env src/seed.ts",
+    "db:dev:up": "docker run -d --name dotstudy-pg-dev -e POSTGRES_USER=dotstudy -e POSTGRES_PASSWORD=dotstudy -e POSTGRES_DB=dotstudy -p 5432:5432 -v dotstudy-pg-dev:/var/lib/postgresql/data postgres:16-alpine",
+    "db:test:up": "docker run -d --rm --name dotstudy-pg-test -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dotstudy_test -p 5433:5432 postgres:16-alpine",
+    "db:test:down": "docker stop dotstudy-pg-test"
+  },
+  "dependencies": {
+    "@dot-study/shared": "0.6.0",
+    "@prisma/client": "6.19.3",
+    "bcryptjs": "3.0.3",
+    "cors": "2.8.6",
+    "express": "5.2.1",
+    "express-rate-limit": "7.5.1",
+    "helmet": "8.3.0",
+    "jsonwebtoken": "9.0.3",
+    "multer": "2.4.0",
+    "pino": "9.14.0",
+    "pino-http": "10.5.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.3.0",
+    "@types/supertest": "^7.2.1",
+    "prisma": "^6.19.3",
+    "supertest": "^7.3.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.6.3",
+    "vitest": "^3.0.5"
+  }
+}

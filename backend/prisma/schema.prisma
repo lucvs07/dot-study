@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SessionMode {
+  challenge
+  free
+}
+
+enum SessionStatus {
+  in_progress
+  completed
+  abandoned
+}
+
+enum PostType {
+  text
+  audio
+  video
+}
+
+enum CoinReason {
+  welcome
+  cycle
+  post
+  purchase
+}
+
+enum MediaKind {
+  audio
+  video
+}
+
+model User {
+  id                String            @id @default(cuid())
+  name              String
+  email             String            @unique
+  passwordHash      String
+  coins             Int               @default(0)
+  dotColor          String            @default("#22CFD5")
+  activeAccessoryId String?
+  createdAt         DateTime
+  sessions          StudySession[]
+  posts             Post[]
+  comments          Comment[]
+  likes             Like[]
+  saves             Save[]
+  accessories       UserAccessory[]
+  transactions      CoinTransaction[]
+  media             Media[]
+}
+
+model Subject {
+  id       Int            @id
+  name     String
+  color    String
+  icon     String
+  themes   Theme[]
+  sessions StudySession[]
+  posts    Post[]
+}
+
+model Theme {
+  id        Int            @id
+  title     String
+  subjectId Int
+  subject   Subject        @relation(fields: [subjectId], references: [id])
+  sessions  StudySession[]
+}
+
+model StudySession {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mode            SessionMode
+  subjectId       Int?
+  subject         Subject?      @relation(fields: [subjectId], references: [id])
+  themeId         Int?
+  theme           Theme?        @relation(fields: [themeId], references: [id])
+  label           String?
+  focusMinutes    Int
+  breakMinutes    Int
+  plannedCycles   Int
+  completedCycles Int           @default(0)
+  notes           String        @default("")
+  status          SessionStatus @default(in_progress)
+  startedAt       DateTime
+  lastCycleAt     DateTime?
+  finishedAt      DateTime?
+  rewardedPostId  String?       @unique
+  posts           Post[]
+
+  @@index([userId, status])
+  @@index([subjectId])
+}
+
+model Post {
+  id               String        @id @default(cuid())
+  authorId         String
+  author           User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  sessionId        String?
+  session          StudySession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  subjectId        Int?
+  subject          Subject?      @relation(fields: [subjectId], references: [id])
+  type             PostType
+  title            String
+  content          String        @default("")
+  mediaId          String?       @unique
+  media            Media?        @relation(fields: [mediaId], references: [id])
+  mediaUrl         String?
+  mediaDurationSec Int?
+  baseLikeCount    Int           @default(0)
+  createdAt        DateTime
+  likes            Like[]
+  saves            Save[]
+  comments         Comment[]
+
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([subjectId])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  postId    String
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Comment?  @relation("Replies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("Replies")
+  content   String
+  createdAt DateTime
+
+  @@index([postId, createdAt])
+}
+
+model Like {
+  userId String
+  postId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+}
+
+model Save {
+  userId String
+  postId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+}
+
+model Accessory {
+  id    String          @id
+  name  String
+  cost  Int
+  users UserAccessory[]
+}
+
+model UserAccessory {
+  userId      String
+  accessoryId String
+  unlockedAt  DateTime
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessory   Accessory @relation(fields: [accessoryId], references: [id])
+
+  @@id([userId, accessoryId])
+}
+
+model CoinTransaction {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount    Int
+  reason    CoinReason
+  refId     String?
+  createdAt DateTime
+
+  @@index([userId, createdAt])
+}
+
+model Media {
+  id          String    @id @default(cuid())
+  ownerId     String
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  url         String    @unique
+  kind        MediaKind
+  durationSec Int
+  sizeBytes   Int
+  createdAt   DateTime
+  post        Post?
+}
