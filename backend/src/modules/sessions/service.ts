@@ -68,6 +68,8 @@ export function createSessionService(deps: Deps) {
         themeId = subject.themes[pickIndex(deps.random, subject.themes.length)].id;
       }
       const created = await prisma.$transaction(async (tx) => {
+        // Trava a linha do usuário: inícios simultâneos são serializados e só um fica in_progress.
+        await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`;
         await tx.studySession.updateMany({
           where: { userId, status: "in_progress" },
           data: { status: "abandoned", finishedAt: now },
@@ -124,13 +126,17 @@ export function createSessionService(deps: Deps) {
     async update(userId: string, id: string, body: unknown) {
       const input = parse(updateSchema, body);
       const s = await findMine(userId, id);
-      const data: { notes?: string; status?: "completed" | "abandoned"; finishedAt?: Date } = {};
-      if (input.notes !== undefined) data.notes = input.notes;
-      if (input.status && s.status === "in_progress") {
-        data.status = input.status;
-        data.finishedAt = deps.now();
+      if (input.notes !== undefined) {
+        await prisma.studySession.update({ where: { id: s.id }, data: { notes: input.notes } });
       }
-      return toSession(await prisma.studySession.update({ where: { id: s.id }, data }));
+      if (input.status) {
+        // condicional: não sobrescreve uma sessão concluída/abandonada por outra requisição
+        await prisma.studySession.updateMany({
+          where: { id: s.id, userId, status: "in_progress" },
+          data: { status: input.status, finishedAt: deps.now() },
+        });
+      }
+      return toSession(await prisma.studySession.findUniqueOrThrow({ where: { id: s.id } }));
     },
 
     async list(userId: string) {

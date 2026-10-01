@@ -88,6 +88,17 @@ describe("posts", () => {
     expect((await prisma.user.findUniqueOrThrow({ where: { id: "u_demo" } })).coins).toBe(880);
   });
 
+  it("filtro e cursor inválidos dão 400 VALIDATION em pt-BR (nunca 500 nem inglês)", async () => {
+    const { api } = await setup();
+    const bad = await api.get("/posts?subjectId=abc");
+    expect(bad.status).toBe(400);
+    expect(bad.body.error.code).toBe("VALIDATION");
+    expect(bad.body.error.message).toBe('O campo "subjectId" tem um valor inválido.');
+    const cursor = await api.get(`/posts?cursor=${encodeURIComponent("2026-13-45T99:99:99.000Z|p1")}`);
+    expect(cursor.status).toBe(400);
+    expect(cursor.body.error).toEqual({ code: "VALIDATION", message: "Cursor inválido." });
+  });
+
   it("valida título, conteúdo e sessão de outro usuário", async () => {
     const { api } = await setup();
     expect((await api.post("/posts", { sessionId: null, type: "text", title: "ab", content: "" })).body.error).toEqual({

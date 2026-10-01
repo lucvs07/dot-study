@@ -78,6 +78,7 @@ export function createPostService(deps: Deps, resolveMedia: MediaResolver = text
       if (f.cursor) {
         const [iso, id] = f.cursor.split("|");
         const at = new Date(iso);
+        if (Number.isNaN(at.getTime())) throw new AppError("VALIDATION", "Cursor inválido.");
         where.OR = [{ createdAt: { lt: at } }, { createdAt: at, id: { lt: id } }];
       }
       const rows = await prisma.post.findMany({

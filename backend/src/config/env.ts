@@ -12,6 +12,7 @@ const schema = z
     UPLOAD_DIR: z.string().default("./uploads"),
     CLOUDINARY_URL: z.string().optional(),
     AUTH_RATE_LIMIT: z.coerce.number().int().positive().default(20),
+    UPLOAD_RATE_LIMIT: z.coerce.number().int().positive().default(30),
     LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   })
   .superRefine((e, ctx) => {

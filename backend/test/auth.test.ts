@@ -110,4 +110,13 @@ describe("auth", () => {
       message: "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
     });
   });
+
+  it("logins bem-sucedidos não consomem o limite", async () => {
+    const { app } = createTestContext({ env: { AUTH_RATE_LIMIT: 2 } });
+    for (let i = 0; i < 4; i++) expect((await loginAs(app)).token).toBeTruthy();
+    const wrong = () => request(app).post("/api/v1/auth/login").send({ email: "x@y.com", password: "12345678" });
+    expect((await wrong()).status).toBe(401);
+    expect((await wrong()).status).toBe(401);
+    expect((await wrong()).status).toBe(429);
+  });
 });

@@ -60,6 +60,9 @@ describe("sessions", () => {
         .body.error.code,
     ).toBe("VALIDATION");
     expect((await api.post("/sessions", { mode: "outro" })).body.error.code).toBe("VALIDATION");
+    const bad = await api.post("/sessions", { mode: "challenge", subjectId: "x", focusMinutes: 25 });
+    expect(bad.status).toBe(400);
+    expect(bad.body.error).toEqual({ code: "VALIDATION", message: 'O campo "subjectId" tem um valor inválido.' });
   });
 
   it("ciclo cedo demais → 409 CYCLE_TOO_SOON; no tempo → +10 e sessão concluída", async () => {
@@ -91,6 +94,26 @@ describe("sessions", () => {
     expect(results.map((r) => r.status).sort()).toEqual([200, 409]);
     expect((await prisma.user.findUniqueOrThrow({ where: { id: "u_demo" } })).coins).toBe(850);
     expect((await prisma.studySession.findUniqueOrThrow({ where: { id: s.id } })).completedCycles).toBe(1);
+  });
+
+  it("24 inícios simultâneos deixam exatamente 1 sessão in_progress", async () => {
+    const { api, prisma } = await setup();
+    const N = 24;
+    const results = await Promise.all(
+      Array.from({ length: N }, () => api.post("/sessions", { mode: "challenge", subjectId: 1, focusMinutes: 25 })),
+    );
+    expect(results.every((r) => r.status === 201)).toBe(true);
+    expect(await prisma.studySession.count({ where: { userId: "u_demo", status: "in_progress" } })).toBe(1);
+  });
+
+  it("finalizar não sobrescreve sessão já concluída", async () => {
+    const { api, clock, prisma } = await setup();
+    const s = (await api.post("/sessions", { mode: "challenge", subjectId: 1, focusMinutes: 25 })).body;
+    clock.advance(25 * 60_000);
+    expect((await api.post(`/sessions/${s.id}/cycles`)).body.session.status).toBe("completed");
+    const res = await api.patch(`/sessions/${s.id}`, { status: "abandoned", notes: "depois" });
+    expect(res.body).toMatchObject({ status: "completed", notes: "depois" });
+    expect((await prisma.studySession.findUniqueOrThrow({ where: { id: s.id } })).status).toBe("completed");
   });
 
   it("iniciar outra sessão abandona a anterior (recarregou a página)", async () => {

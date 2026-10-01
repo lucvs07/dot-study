@@ -159,6 +159,43 @@ describe("uploads", () => {
     expect(loser.body.error.code).toBe("VALIDATION");
   });
 
+  it("mídia inexistente dá 404 NOT_FOUND e multipart truncado dá 400 VALIDATION", async () => {
+    const { app, token } = await setup();
+    const missing = await request(app).get("/media/nao-existe.webm");
+    expect(missing.status).toBe(404);
+    expect(missing.body.error).toEqual({ code: "NOT_FOUND", message: "Arquivo não encontrado." });
+    const truncated = await request(app)
+      .post("/api/v1/uploads")
+      .set("Authorization", `Bearer ${token}`)
+      .set("Content-Type", "multipart/form-data; boundary=XyZ")
+      .send(
+        '--XyZ\r\nContent-Disposition: form-data; name="file"; filename="a.webm"\r\nContent-Type: audio/webm\r\n\r\nabc',
+      );
+    expect(truncated.status).toBe(400);
+    expect(truncated.body.error).toEqual({ code: "VALIDATION", message: "Envio de arquivo inválido." });
+  });
+
+  it("rate limit em /uploads devolve 429 em pt-BR", async () => {
+    await seedDemo(getTestPrisma(), new Date("2026-09-29T12:00:00.000Z"));
+    const { app } = createTestContext({ env: { UPLOAD_RATE_LIMIT: 2 } });
+    const { token } = await loginAs(app);
+    const send = () =>
+      request(app)
+        .post("/api/v1/uploads")
+        .set("Authorization", `Bearer ${token}`)
+        .field("kind", "audio")
+        .field("durationSec", "5")
+        .attach("file", WEBM, { filename: "a.webm", contentType: "audio/webm" });
+    expect((await send()).status).toBe(201);
+    expect((await send()).status).toBe(201);
+    const res = await send();
+    expect(res.status).toBe(429);
+    expect(res.body.error).toEqual({
+      code: "VALIDATION",
+      message: "Muitos envios. Aguarde alguns minutos e tente de novo.",
+    });
+  });
+
   it("exige login", async () => {
     const { app } = await setup();
     expect((await request(app).post("/api/v1/uploads")).status).toBe(401);
