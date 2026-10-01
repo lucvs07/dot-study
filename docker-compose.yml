@@ -47,6 +47,7 @@ services:
         VITE_DATA_SOURCE: api
         VITE_API_URL: ""
         VITE_SPOTIFY_CLIENT_ID: ${VITE_SPOTIFY_CLIENT_ID:-}
+        VITE_DEMO_MODE: ${VITE_DEMO_MODE:-false}
     ports:
       - "8080:80"
     depends_on:
