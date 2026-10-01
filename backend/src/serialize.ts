@@ -1,5 +1,6 @@
-import type { Author, User } from "@dot-study/shared/contracts";
+import type { Author, StudySession, User } from "@dot-study/shared/contracts";
 import type { Prisma } from "@prisma/client";
+import type { StudySession as SessionRow } from "@prisma/client";
 
 export const userInclude = {
   accessories: { select: { accessoryId: true }, orderBy: { unlockedAt: "asc" } },
@@ -22,4 +23,25 @@ export function toUser(u: UserRecord): User {
 
 export function toAuthor(u: { id: string; name: string; dotColor: string; activeAccessoryId: string | null }): Author {
   return { id: u.id, name: u.name, dotColor: u.dotColor, activeAccessoryId: u.activeAccessoryId };
+}
+
+export function toSession(s: SessionRow): StudySession {
+  return {
+    id: s.id,
+    userId: s.userId,
+    mode: s.mode,
+    subjectId: s.subjectId,
+    themeId: s.themeId,
+    label: s.label,
+    focusMinutes: s.focusMinutes,
+    breakMinutes: s.breakMinutes,
+    plannedCycles: s.plannedCycles,
+    completedCycles: s.completedCycles,
+    notes: s.notes,
+    status: s.status,
+    startedAt: s.startedAt.toISOString(),
+    lastCycleAt: s.lastCycleAt?.toISOString() ?? null,
+    finishedAt: s.finishedAt?.toISOString() ?? null,
+    rewardedPostId: s.rewardedPostId,
+  };
 }

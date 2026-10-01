@@ -6,6 +6,8 @@ import { webOrigins } from "./config/env";
 import type { Deps } from "./deps";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 import { createAuthRouter } from "./modules/auth/routes";
+import { createSessionsRouter } from "./modules/sessions/routes";
+import { createSubjectsRouter } from "./modules/subjects/routes";
 import { createUsersRouter } from "./modules/users/routes";
 
 export function createApp(deps: Deps): express.Express {
@@ -29,7 +31,9 @@ export function createApp(deps: Deps): express.Express {
   });
   api.use("/auth", createAuthRouter(deps));
   api.use("/users", createUsersRouter(deps));
-  // ROTAS — as Tasks 6–9 montam aqui.
+  api.use("/subjects", createSubjectsRouter(deps));
+  api.use("/sessions", createSessionsRouter(deps));
+  // ROTAS — as Tasks 7–9 montam aqui.
 
   app.use("/api/v1", api);
   app.use(notFoundHandler);
