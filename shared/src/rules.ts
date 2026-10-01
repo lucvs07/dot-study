@@ -47,15 +47,25 @@ export function calculateStreak(
   return streak;
 }
 
-export function computeSubjectScores(
-  subjectId: number,
-  sessions: StudySession[],
-  posts: { authorId: ID; subjectId: number | null }[],
-): Map<ID, number> {
+export type ScoreSession = Pick<StudySession, "id" | "userId" | "subjectId" | "completedCycles" | "rewardedPostId">;
+export type ScorePost = { id: ID; authorId: ID; subjectId: number | null; sessionId: ID | null };
+
+/**
+ * Pontos do assunto: 10 por ciclo concluído + 30 por post que pontua. Um post pontua se não
+ * veio de sessão (dados do seed) ou se é o post recompensado da sua sessão (no máximo 1 por
+ * sessão, e só sessão com ciclo concluído recebe recompensa).
+ */
+export function computeSubjectScores(subjectId: number, sessions: ScoreSession[], posts: ScorePost[]): Map<ID, number> {
   const scores = new Map<ID, number>();
   const add = (userId: ID, value: number) => scores.set(userId, (scores.get(userId) ?? 0) + value);
-  for (const s of sessions) if (s.subjectId === subjectId) add(s.userId, s.completedCycles * POINTS.cycle);
-  for (const p of posts) if (p.subjectId === subjectId) add(p.authorId, POINTS.post);
+  const rewarded = new Set<ID>();
+  for (const s of sessions) {
+    if (s.rewardedPostId) rewarded.add(s.rewardedPostId);
+    if (s.subjectId === subjectId) add(s.userId, s.completedCycles * POINTS.cycle);
+  }
+  for (const p of posts) {
+    if (p.subjectId === subjectId && (p.sessionId === null || rewarded.has(p.id))) add(p.authorId, POINTS.post);
+  }
   return scores;
 }
 

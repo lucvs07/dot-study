@@ -105,13 +105,31 @@ describe("ranking", () => {
         { ...base, id: "s3", userId: "u2", subjectId: 2, completedCycles: 9 },
       ],
       [
-        { authorId: "u1", subjectId: 1 },
-        { authorId: "u1", subjectId: 1 },
-        { authorId: "u2", subjectId: 2 },
+        { id: "p1", authorId: "u1", subjectId: 1, sessionId: null },
+        { id: "p2", authorId: "u1", subjectId: 1, sessionId: null },
+        { id: "p3", authorId: "u2", subjectId: 2, sessionId: null },
       ],
     );
     expect(scores.get("u1")).toBe(70);
     expect(scores.get("u2")).toBe(40);
+  });
+  it("post de sessão só pontua se for o recompensado; post sem sessão (seed) pontua", () => {
+    const scores = computeSubjectScores(
+      1,
+      [
+        { ...base, id: "s1", userId: "u1", completedCycles: 1, rewardedPostId: "p1" },
+        { ...base, id: "s2", userId: "u2", completedCycles: 0, rewardedPostId: null },
+      ],
+      [
+        { id: "p1", authorId: "u1", subjectId: 1, sessionId: "s1" },
+        { id: "p2", authorId: "u1", subjectId: 1, sessionId: "s1" },
+        { id: "p3", authorId: "u1", subjectId: 1, sessionId: "s1" },
+        { id: "p4", authorId: "u2", subjectId: 1, sessionId: "s2" },
+        { id: "p5", authorId: "u2", subjectId: 1, sessionId: null },
+      ],
+    );
+    expect(scores.get("u1")).toBe(10 + 30);
+    expect(scores.get("u2")).toBe(30);
   });
   it("ordena por pontuação, marca o usuário atual e ignora zero", () => {
     const entries = rankEntries(

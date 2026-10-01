@@ -36,7 +36,9 @@ describe("seed", () => {
     const prisma = getTestPrisma();
     await seedDemo(prisma, NOW);
     const sessions = await prisma.studySession.findMany();
-    const posts = await prisma.post.findMany({ select: { authorId: true, subjectId: true } });
+    const posts = await prisma.post.findMany({
+      select: { id: true, authorId: true, subjectId: true, sessionId: true },
+    });
     const scores = computeSubjectScores(
       1,
       sessions.map((s) => ({
