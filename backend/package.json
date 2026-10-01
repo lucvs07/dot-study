@@ -21,6 +21,7 @@
     "@dot-study/shared": "0.6.0",
     "@prisma/client": "6.19.3",
     "bcryptjs": "3.0.3",
+    "cloudinary": "2.11.0",
     "cors": "2.8.6",
     "express": "5.2.1",
     "express-rate-limit": "7.5.1",

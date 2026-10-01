@@ -2,7 +2,7 @@ import { COINS } from "@dot-study/shared/rules";
 import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import type { Deps } from "../../deps";
-import { AppError } from "../../errors";
+import { AppError, isUniqueViolation } from "../../errors";
 import { postInclude, toCommentTree, toPost } from "../../serialize";
 import { parse } from "../../validate";
 
@@ -104,20 +104,25 @@ export function createPostService(deps: Deps, resolveMedia: MediaResolver = text
           : null;
         if (input.sessionId && !session) throw new AppError("NOT_FOUND", "Sessão não encontrada.");
         const media = await resolveMedia(tx, meId, input);
-        const post = await tx.post.create({
-          data: {
-            authorId: meId,
-            sessionId: session?.id ?? null,
-            subjectId: session?.subjectId ?? null,
-            type: input.type,
-            title: input.title,
-            content: input.content.trim(),
-            mediaId: media?.mediaId ?? null,
-            mediaUrl: media?.mediaUrl ?? null,
-            mediaDurationSec: media?.mediaDurationSec ?? null,
-            createdAt: now,
-          },
-        });
+        const post = await tx.post
+          .create({
+            data: {
+              authorId: meId,
+              sessionId: session?.id ?? null,
+              subjectId: session?.subjectId ?? null,
+              type: input.type,
+              title: input.title,
+              content: input.content.trim(),
+              mediaId: media?.mediaId ?? null,
+              mediaUrl: media?.mediaUrl ?? null,
+              mediaDurationSec: media?.mediaDurationSec ?? null,
+              createdAt: now,
+            },
+          })
+          .catch((err) => {
+            if (isUniqueViolation(err)) throw new AppError("VALIDATION", "Essa mídia já foi publicada.");
+            throw err;
+          });
         let reward = null;
         if (session && session.completedCycles > 0) {
           // update condicional: só a primeira publicação da sessão leva a recompensa

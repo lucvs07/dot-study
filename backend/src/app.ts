@@ -11,6 +11,8 @@ import { createRankingsRouter } from "./modules/rankings/routes";
 import { createSessionsRouter } from "./modules/sessions/routes";
 import { createShopRouter } from "./modules/shop/routes";
 import { createSubjectsRouter } from "./modules/subjects/routes";
+import { ownedMediaResolver } from "./modules/uploads/service";
+import { createUploadsRouter } from "./modules/uploads/routes";
 import { createUsersRouter } from "./modules/users/routes";
 
 export function createApp(deps: Deps): express.Express {
@@ -36,10 +38,10 @@ export function createApp(deps: Deps): express.Express {
   api.use("/users", createUsersRouter(deps));
   api.use("/subjects", createSubjectsRouter(deps));
   api.use("/sessions", createSessionsRouter(deps));
-  api.use("/posts", createPostsRouter(deps));
+  api.use("/posts", createPostsRouter(deps, ownedMediaResolver));
   api.use("/rankings", createRankingsRouter(deps));
   api.use("/shop", createShopRouter(deps));
-  // ROTAS — as Tasks 7–9 montam aqui.
+  api.use("/uploads", createUploadsRouter(deps));
 
   app.use("/api/v1", api);
   app.use(notFoundHandler);
