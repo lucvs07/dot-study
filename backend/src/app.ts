@@ -5,6 +5,7 @@ import { pinoHttp } from "pino-http";
 import { webOrigins } from "./config/env";
 import type { Deps } from "./deps";
 import { errorHandler, notFoundHandler } from "./middleware/error";
+import { createAuthRouter } from "./modules/auth/routes";
 
 export function createApp(deps: Deps): express.Express {
   const { env } = deps;
@@ -25,7 +26,8 @@ export function createApp(deps: Deps): express.Express {
     await deps.prisma.$queryRaw`SELECT 1`;
     res.json({ status: "ok" });
   });
-  // ROTAS — as Tasks 4–9 montam aqui: api.use("/auth", createAuthRouter(deps)), etc.
+  api.use("/auth", createAuthRouter(deps));
+  // ROTAS — as Tasks 5–9 montam aqui.
 
   app.use("/api/v1", api);
   app.use(notFoundHandler);

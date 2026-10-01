@@ -1,4 +1,6 @@
+import type { Express } from "express";
 import { PrismaClient } from "@prisma/client";
+import request from "supertest";
 import { afterAll } from "vitest";
 import { createApp } from "../src/app";
 import { loadEnv, type Env } from "../src/config/env";
@@ -61,4 +63,10 @@ export function createTestContext(opts: { storage?: StorageDriver; random?: () =
     storage: opts.storage ?? createLocalStorage(env.UPLOAD_DIR),
   };
   return { app: createApp(deps), deps, clock, prisma: deps.prisma };
+}
+
+export async function loginAs(app: Express, email = "demo@dotstudy.app", password = "dotstudy123") {
+  const res = await request(app).post("/api/v1/auth/login").send({ email, password });
+  if (res.status !== 200) throw new Error(`login falhou: ${res.status} ${JSON.stringify(res.body)}`);
+  return res.body as { token: string; user: { id: string; coins: number } };
 }
