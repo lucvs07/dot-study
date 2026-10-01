@@ -81,11 +81,13 @@ export function createHttpClient({
       }
       const data: unknown = res.status === 204 ? null : await res.json().catch(() => null);
       if (!res.ok) {
-        if (res.status === 401 && token) {
+        const err = (data as { error?: { code?: unknown; message?: unknown } } | null)?.error;
+        // Só UNAUTHORIZED significa token inválido/expirado. Outros 401 (ex.: senha atual errada em
+        // Ajustes, INVALID_CREDENTIALS) não podem derrubar a sessão.
+        if (res.status === 401 && token && err?.code === "UNAUTHORIZED") {
           tokens.set(null);
           onUnauthorized();
         }
-        const err = (data as { error?: { code?: unknown; message?: unknown } } | null)?.error;
         if (err && typeof err.code === "string" && KNOWN_CODES.has(err.code)) {
           throw new ServiceError(
             err.code as ServiceErrorCode,

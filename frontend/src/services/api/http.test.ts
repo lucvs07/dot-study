@@ -86,6 +86,23 @@ describe("createHttpClient", () => {
     expect(onUnauthorized).not.toHaveBeenCalled();
   });
 
+  it("401 INVALID_CREDENTIALS com token mantém a sessão", async () => {
+    const tokens = memoryTokenStore();
+    tokens.set("valido");
+    const onUnauthorized = vi.fn();
+    const http = createHttpClient({
+      baseUrl: "",
+      tokens,
+      onUnauthorized,
+      fetchFn: () => json(401, { error: { code: "INVALID_CREDENTIALS", message: "Senha atual incorreta." } }),
+    });
+    await expect(http.request("PATCH", "/users/me/password")).rejects.toEqual(
+      new ServiceError("INVALID_CREDENTIALS", "Senha atual incorreta."),
+    );
+    expect(tokens.get()).toBe("valido");
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
   it("multipart não define Content-Type (o navegador põe o boundary)", async () => {
     const fetchFn = vi.fn((..._args: unknown[]) => json(201, {}));
     const form = new FormData();
