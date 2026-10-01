@@ -3,6 +3,7 @@ import { afterAll } from "vitest";
 import { createApp } from "../src/app";
 import { loadEnv, type Env } from "../src/config/env";
 import type { Deps } from "../src/deps";
+import { seedCatalog } from "../src/seed/catalog";
 import type { StorageDriver } from "../src/storage/driver";
 import { createLocalStorage } from "../src/storage/local";
 
@@ -36,6 +37,7 @@ const TABLES = [
 export async function resetDb(): Promise<void> {
   const list = TABLES.map((t) => `"${t}"`).join(", ");
   await getTestPrisma().$executeRawUnsafe(`TRUNCATE ${list} RESTART IDENTITY CASCADE`);
+  await seedCatalog(getTestPrisma());
 }
 
 export interface TestClock {
