@@ -43,9 +43,9 @@ A navegação principal fica na barra inferior: **Início**, **Estudar**, **Feed
 - **Estudar:**
   - **Modo desafio:** escolha uma área de assunto (ou "aleatório") → o app sorteia um tema dentro dela → escolha a dificuldade (Fácil 15 min, Médio 25 min, Difícil 40 min — e **Demo** de 1 min, só quando `VITE_DEMO_MODE=true`) → "Iniciar Desafio" começa o cronômetro de foco (sempre 1 ciclo). Durante o foco dá para digitar anotações e visitar a seção **Leitura** (material de apoio sobre o tema, com um timer flutuante que continua contando). Ao concluir o ciclo, o app credita +10 moedas e +10 pontos no ranking do assunto, e leva direto para a tela de **Publicar** (sem sair da página de Estudar).
   - **Sessão livre:** escolha a duração do foco, da pausa e a quantidade de ciclos → "Começar sessão livre". Mesmo cronômetro, mas sem assunto/tema sorteado — cada ciclo credita moedas, com pausa entre ciclos; ao final, mostra um resumo da sessão (sem a tela de Publicar, já que não há assunto para pontuar no ranking).
-- **Publicar (post):** só no modo desafio, ao concluir o ciclo. Escreva um texto, ou grave **áudio** (até 300 s / 10 MB) ou **vídeo** (até 120 s / 50 MB) direto pelo navegador — ou envie um arquivo já pronto. A duração usada na validação é a medida pelo navegador no momento da gravação (não é reconferida no servidor, só o tamanho do arquivo). Um post publicado concede +30 moedas e +30 pontos no assunto da sessão, no máximo uma vez por sessão.
+- **Publicar (post):** só no modo desafio, ao concluir o ciclo. Escreva um texto, ou grave **áudio** (até 300 s / 10 MB) ou **vídeo** (até 120 s / 50 MB) direto pelo navegador — ou envie um arquivo já pronto. A duração usada na validação é a medida pelo navegador no momento da gravação (não é reconferida no servidor, só o tamanho do arquivo). Só o **primeiro post de uma sessão com ciclo concluído** concede +30 moedas e +30 pontos no assunto da sessão; posts seguintes da mesma sessão são publicados normalmente, mas não rendem moedas nem pontos.
 - **Feed:** lista os posts da comunidade (texto, áudio ou vídeo), com curtir, comentar, responder e salvar.
-- **Ranking:** pontuação por assunto, calculada a partir de ciclos concluídos e posts publicados (não é uma tabela separada — é recalculada na consulta).
+- **Ranking:** pontuação por assunto, calculada a partir de ciclos concluídos e dos posts que renderam recompensa (o primeiro post de cada sessão com ciclo concluído); não é uma tabela separada, é recalculada na consulta.
 - **Histórico:** todas as sessões de estudo do usuário, com estatísticas (sequência de dias, tempo total) no fuso horário do navegador.
 - **Loja:** escolha a cor do personagem "dot" e compre acessórios com moedas — cada um tem um botão "Comprar" (debita o saldo e desbloqueia) e, depois de desbloqueado, um botão "Equipar" (troca o acessório ativo no personagem), ações separadas.
 - **Ajustes:** perfil (nome), aparência (tema claro/escuro), conta (trocar email/senha) e sair. O botão "Restaurar dados de demonstração" só aparece no modo mock (CP5/sem backend) — no Docker/API, para recomeçar do zero use `docker compose down -v` (ver seção 5).
@@ -62,14 +62,14 @@ Depois de um `docker compose down` (sem `-v`) seguido de `docker compose up`, os
 
 ## 6. Problemas comuns
 
-- **Porta 8080 ocupada:** edite `docker-compose.yml`, troque a linha `"8080:80"` do serviço `web` para `"8081:80"` e inclua `http://127.0.0.1:8081` na variável `WEB_ORIGIN` do serviço `api` (separada por vírgula das demais origens). Depois acesse `http://127.0.0.1:8081`.
+- **Porta 8080 ocupada:** edite `docker-compose.yml`, troque a linha `"127.0.0.1:8080:80"` do serviço `web` para `"127.0.0.1:8081:80"` e inclua `http://127.0.0.1:8081` na variável `WEB_ORIGIN` do serviço `api` (separada por vírgula das demais origens). Depois acesse `http://127.0.0.1:8081`.
 - **Docker sem memória:** se o `docker compose up --build` travar ou os containers reiniciarem em loop, aumente a memória alocada ao Docker Desktop (Configurações → Resources) para pelo menos 4 GB.
 - **Microfone/câmera bloqueados:** confirme que está acessando por `http://127.0.0.1:8080` e não por um IP da rede local (ex. `192.168.x.x`) — só `localhost`/`127.0.0.1` e HTTPS são contextos seguros para `getUserMedia`. Verifique também a permissão do navegador para o site.
 - **Spotify recusa a conexão (conta fora da allowlist):** o app do dot.study está em modo desenvolvedor no Spotify, o que exige que o dono do app tenha Spotify Premium e limita a 5 contas cadastradas na allowlist; o player de playlists curadas continua funcionando normalmente sem conectar a conta.
 
 ## 7. Rodar sem Docker (desenvolvimento)
 
-Pré-requisito: Node.js ≥ 20.
+Pré-requisito: Node.js ≥ 20.12 (os testes do backend carregam o `.env.test` com `process.loadEnvFile`, disponível a partir dessa versão).
 
 ```bash
 npm install

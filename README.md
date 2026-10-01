@@ -62,7 +62,7 @@ dot-study/
 - **Conta de demonstração (válida nos dois):** `demo@dotstudy.app` / `dotstudy123`
 - Ou crie uma conta nova pelo cadastro (ganha 250 moedas de boas-vindas).
 
-> **Tempo de um desafio completo:** no modo normal, a menor dificuldade é de 15 minutos de foco. Para avaliar mais rápido, ligue `VITE_DEMO_MODE=true` (variável de ambiente na Vercel, ou `docker compose build --build-arg VITE_DEMO_MODE=true web && docker compose up -d` no Docker — sem o `--build` no `up`, senão a imagem volta a ser reconstruída sem o modo demo): libera a dificuldade "Demo" (1 minuto). A conta de demonstração já vem com loja, feed e ranking populados (840 moedas, posts e comentários de exemplo).
+> **Tempo de um desafio completo:** no modo normal, a menor dificuldade é de 15 minutos de foco. Para avaliar mais rápido, ligue `VITE_DEMO_MODE=true` (variável de ambiente na Vercel, ou `VITE_DEMO_MODE=true docker compose up --build` no Docker; o compose repassa a variável para o build do `web`): libera a dificuldade "Demo" (1 minuto). A conta de demonstração já vem com loja, feed e ranking populados (840 moedas, posts e comentários de exemplo).
 
 ## Instalação rápida (Docker Compose)
 
@@ -81,6 +81,8 @@ Abra `http://127.0.0.1:8080`. Veja o manual completo (requisitos, problemas comu
 | Docker (banco + API + web) | `docker compose up --build` | `http://127.0.0.1:8080` |
 | Dev com API real | `npm install`, banco e seed (ver seção 7 do manual), depois `npm run dev:backend` (outro terminal) `npm run dev:api` | `http://127.0.0.1:5173` |
 | Só-mock (sem backend) | `npm install && npm run dev` (ou `npm run dev:demo` para a dificuldade "Demo") | `http://127.0.0.1:5173` |
+
+Os modos sem Docker exigem Node.js ≥ 20.12 (campo `engines` do `package.json`).
 
 O servidor de desenvolvimento fica em `127.0.0.1` (não `localhost`) porque o Spotify não aceita `localhost` como redirect URI do OAuth, e o callback de conexão usa `location.origin` (ver `frontend/vite.config.ts`).
 

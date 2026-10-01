@@ -25,11 +25,11 @@
 | Ação | Moedas | Pontos no ranking do assunto |
 |---|---|---|
 | Ciclo de pomodoro concluído | +10 | +10 (somente modo desafio, que tem assunto) |
-| Post publicado (qualquer tipo) | +30 (máx. 1 recompensa por sessão) | +30 (se o post tiver assunto) |
+| Post publicado (qualquer tipo) | +30 (máx. 1 recompensa por sessão, só se a sessão tiver ≥ 1 ciclo concluído) | +30 (só o post recompensado, que tem o assunto da sessão) |
 | Compra de acessório | −custo | — |
 | Cadastro (bônus de boas-vindas) | +250 | — |
 
-Pontuação do usuário no assunto = `10 × ciclos concluídos no assunto + 30 × posts no assunto` (período total). O ranking não é uma tabela própria: é calculado por consulta sobre sessões e posts (ver `docs/04-modelagem-uml.md`).
+Pontuação do usuário no assunto = `10 × ciclos concluídos no assunto + 30 × posts recompensados no assunto` (período total). Um post conta se for o post recompensado da sua sessão (o primeiro publicado depois de ≥ 1 ciclo concluído); posts extras da mesma sessão ou de sessão sem ciclo não pontuam. Os posts do seed de demonstração, que não têm sessão, contam (`computeSubjectScores` em `shared/src/rules.ts`). O ranking não é uma tabela própria: é calculado por consulta sobre sessões e posts (ver `docs/04-modelagem-uml.md`).
 
 ### Regras anti-trapaça
 

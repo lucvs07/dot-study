@@ -418,7 +418,7 @@ sequenceDiagram
 
 ## Diagrama de Sequência — Sessão expirada
 
-Representa `frontend/src/services/api/http.ts`: qualquer resposta `401` de uma rota autenticada apaga o token (`tokens.set(null)`) e dispara o evento `dotstudy:unauthorized`, ouvido por `AppProviders` (`frontend/src/app/providers.tsx`), que zera a query `me`. O `ProtectedRoute` (`frontend/src/app/ProtectedRoute.tsx`), observando `useAuth()`, troca o `<Outlet/>` por um redirecionamento para `/login` assim que `user` fica `null`.
+Representa `frontend/src/services/api/http.ts`: uma resposta `401` com código `UNAUTHORIZED` (token ausente, inválido ou expirado) apaga o token (`tokens.set(null)`) e dispara o evento `dotstudy:unauthorized`, ouvido por `AppProviders` (`frontend/src/app/providers.tsx`), que zera a query `me`. Outros `401`, como `INVALID_CREDENTIALS` ao errar a senha atual em Ajustes, só viram erro na tela e mantêm a sessão. O `ProtectedRoute` (`frontend/src/app/ProtectedRoute.tsx`), observando `useAuth()`, troca o `<Outlet/>` por um redirecionamento para `/login` assim que `user` fica `null`.
 
 ```mermaid
 sequenceDiagram
@@ -451,8 +451,8 @@ sequenceDiagram
 flowchart LR
     subgraph Deploy["Deploy final (CP6)"]
         direction LR
-        Browser1["Navegador"] -->|HTTPS| Vercel["Vercel — frontend\nVITE_DATA_SOURCE=api"]
-        Vercel -->|"/api/v1/*"| Render["Render — API Express\n(hiberna no plano free)"]
+        Browser1["Navegador"] -->|"HTTPS (HTML/JS/CSS)"| Vercel["Vercel — frontend estático\nVITE_DATA_SOURCE=api"]
+        Browser1 -->|"HTTPS + CORS\nVITE_API_URL/api/v1/*"| Render["Render — API Express\n(hiberna no plano free)"]
         Render -->|Prisma| Neon["Neon — PostgreSQL"]
         Render -->|STORAGE_DRIVER=cloudinary| Cloudinary["Cloudinary — mídia (áudio/vídeo)"]
     end
@@ -466,7 +466,7 @@ flowchart LR
     end
 ```
 
-> No deploy final, o frontend fala só com o seu próprio domínio na Vercel (requisições relativas) e esse domínio é configurado para encaminhar `/api/v1/*` ao Render; `WEB_ORIGIN` no Render lista as origens permitidas por CORS. No Docker, o `nginx.conf` do serviço `web` faz proxy de `/api/` e `/media/` para `api:3000`, então o navegador fala só com `127.0.0.1:8080` (mesma origem, sem CORS) — ver `frontend/nginx.conf` e `docker-compose.yml`.
+> No deploy final, a Vercel só serve os arquivos estáticos do frontend (`frontend/vercel.json` tem apenas o rewrite de SPA para `index.html`, sem proxy). O navegador chama a API direto no Render, pela URL absoluta de `VITE_API_URL` (embutida no build) + `/api/v1/*`, via HTTPS; o Render aceita a origem da Vercel por CORS, configurada em `WEB_ORIGIN`. No Docker, o `nginx.conf` do serviço `web` faz proxy de `/api/` e `/media/` para `api:3000`, então o navegador fala só com `127.0.0.1:8080` (mesma origem, sem CORS) — ver `frontend/nginx.conf` e `docker-compose.yml`.
 
 ## Diagramas de Atividade (CP5, continuam valendo)
 
@@ -510,9 +510,9 @@ flowchart TD
     C --> H[Enviar]
     G --> H
     H --> I[Criar post]
-    I --> J{Sessão já teve recompensa?}
-    J -->|Não| K[Creditar +30 moedas / +30 pontos se houver assunto]
-    J -->|Sim| L[Sem recompensa adicional]
+    I --> J{Sessão com ciclo concluído e ainda sem recompensa?}
+    J -->|Sim| K[Creditar +30 moedas / +30 pontos no assunto da sessão]
+    J -->|Não| L[Sem recompensa nem pontos]
     K --> M([Fim])
     L --> M
 ```

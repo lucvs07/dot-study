@@ -3,7 +3,7 @@ services:
     name: dot-study-api
     runtime: node
     plan: free
-    buildCommand: npm ci --workspace @dot-study/backend --workspace @dot-study/shared --include-workspace-root && npx --workspace @dot-study/backend prisma generate && npm run build -w @dot-study/backend
+    buildCommand: npm ci --include=dev --workspace @dot-study/backend --workspace @dot-study/shared --include-workspace-root && npx --workspace @dot-study/backend prisma generate && npm run build -w @dot-study/backend
     startCommand: cd backend && npx prisma migrate deploy && node dist/seed.js && node dist/server.js
     healthCheckPath: /api/v1/health
     envVars:
