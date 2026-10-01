@@ -14,6 +14,7 @@ describe("ServerStatusBanner", () => {
       await vi.advanceTimersByTimeAsync(2100);
     });
     expect(screen.getByText("Acordando o servidor… (até ~1 min no plano gratuito)")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveClass("max-w-[calc(100vw-32px)]");
   });
 
   it("não renderiza nada quando o ping resolve na hora", async () => {
