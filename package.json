@@ -3,17 +3,18 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "shared",
     "frontend"
   ],
   "scripts": {
     "dev": "npm run dev -w frontend",
     "dev:demo": "npm run dev:demo -w frontend",
-    "build": "npm run build -w frontend",
-    "typecheck": "npm run typecheck -w frontend",
-    "test": "npm test -w frontend",
-    "lint": "npm run lint -w frontend && npm run format:check",
-    "format": "prettier --write \"frontend/**/*.{ts,tsx,css,json}\" \"*.{js,json}\" \".github/**/*.yml\"",
-    "format:check": "prettier --check \"frontend/**/*.{ts,tsx,css,json}\" \"*.{js,json}\" \".github/**/*.yml\""
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present && npm run format:check",
+    "format": "prettier --write \"{shared,frontend,backend}/**/*.{ts,tsx,css,json}\" \"*.{js,json}\" \".github/**/*.yml\"",
+    "format:check": "prettier --check \"{shared,frontend,backend}/**/*.{ts,tsx,css,json}\" \"*.{js,json}\" \".github/**/*.yml\""
   },
   "engines": {
     "node": ">=20"

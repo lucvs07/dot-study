@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Author, StudySession } from "@/services/contracts";
+import type { Author, StudySession } from "./contracts";
 import {
   COINS,
   POINTS,

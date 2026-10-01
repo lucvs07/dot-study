@@ -14,6 +14,7 @@
     "lint": "eslint src --max-warnings=0"
   },
   "dependencies": {
+    "@dot-study/shared": "0.6.0",
     "@tanstack/react-query": "5.62.8",
     "lucide-react": "0.487.0",
     "react": "18.3.1",
