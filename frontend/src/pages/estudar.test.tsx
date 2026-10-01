@@ -69,7 +69,9 @@ describe("Estudar (desafio)", () => {
       vi.advanceTimersByTime(15 * 60_000 + 500);
     });
     await user.click(await screen.findByRole("button", { name: /publicar no feed/i }));
-    expect(await screen.findByRole("status")).toHaveTextContent(/\+30 moedas/);
+    // espera o aviso do post: antes dele, a página mostra o status "Carregando…"
+    const banner = (await screen.findByText(/post publicado!/i)).closest('[role="status"]');
+    expect(banner).toHaveTextContent(/\+30 moedas/);
     expect(screen.getByRole("link", { name: /feed/i })).toHaveAttribute("aria-current", "page");
     const { items } = await services.posts.list();
     const session = (await services.sessions.list())[0];
