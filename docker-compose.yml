@@ -1,0 +1,58 @@
+name: dotstudy
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dotstudy
+      POSTGRES_PASSWORD: dotstudy
+      POSTGRES_DB: dotstudy
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dotstudy -d dotstudy"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://dotstudy:dotstudy@db:5432/dotstudy
+      # Segredo só para a instalação local; em produção use um valor próprio (ver docs/09-manual.md)
+      JWT_SECRET: ${JWT_SECRET:-instalacao-local-dotstudy-troque-em-producao}
+      WEB_ORIGIN: http://127.0.0.1:8080,http://localhost:8080
+      STORAGE_DRIVER: local
+      UPLOAD_DIR: /data/uploads
+      LOG_LEVEL: info
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/v1/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_DATA_SOURCE: api
+        VITE_API_URL: ""
+        VITE_SPOTIFY_CLIENT_ID: ${VITE_SPOTIFY_CLIENT_ID:-}
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:

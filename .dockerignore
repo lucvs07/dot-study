@@ -1,0 +1,11 @@
+**/node_modules
+**/dist
+**/coverage
+.git
+.github
+.superpowers
+docs
+**/.env
+**/.env.local
+backend/uploads
+backend/.test-uploads
