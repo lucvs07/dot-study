@@ -9,6 +9,7 @@ import { createAuthRouter } from "./modules/auth/routes";
 import { createPostsRouter } from "./modules/posts/routes";
 import { createRankingsRouter } from "./modules/rankings/routes";
 import { createSessionsRouter } from "./modules/sessions/routes";
+import { createShopRouter } from "./modules/shop/routes";
 import { createSubjectsRouter } from "./modules/subjects/routes";
 import { createUsersRouter } from "./modules/users/routes";
 
@@ -37,6 +38,7 @@ export function createApp(deps: Deps): express.Express {
   api.use("/sessions", createSessionsRouter(deps));
   api.use("/posts", createPostsRouter(deps));
   api.use("/rankings", createRankingsRouter(deps));
+  api.use("/shop", createShopRouter(deps));
   // ROTAS — as Tasks 7–9 montam aqui.
 
   app.use("/api/v1", api);
