@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:demo": "vite --mode demo",
+    "dev:api": "vite --mode api",
     "build": "tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json",

@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { createServices } from "./index";
 
 describe("createServices", () => {
-  it("recusa fonte desconhecida com mensagem clara", () => {
-    expect(() => createServices("api")).toThrow(/ainda não está disponível/);
+  it("aceita mock e api; recusa fonte desconhecida", () => {
+    expect(createServices("api").auth).toBeDefined();
+    expect(() => createServices("graphql")).toThrow(/VITE_DATA_SOURCE="graphql" inválido/);
   });
 });
