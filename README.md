@@ -82,7 +82,7 @@ Abra `http://127.0.0.1:8080`. Veja o manual completo (requisitos, problemas comu
 | Dev com API real | `npm install`, banco e seed (ver seção 7 do manual), depois `npm run dev:backend` (outro terminal) `npm run dev:api` | `http://127.0.0.1:5173` |
 | Só-mock (sem backend) | `npm install && npm run dev` (ou `npm run dev:demo` para a dificuldade "Demo") | `http://127.0.0.1:5173` |
 
-O servidor de desenvolvimento fica em `127.0.0.1` (não `localhost`) porque o Spotify não aceita `localhost` como redirect URI do OAuth, e o microfone/câmera só liberam em contexto seguro.
+O servidor de desenvolvimento fica em `127.0.0.1` (não `localhost`) porque o Spotify não aceita `localhost` como redirect URI do OAuth, e o callback de conexão usa `location.origin` (ver `frontend/vite.config.ts`).
 
 ## Como testar
 

@@ -41,14 +41,14 @@ A navegação principal fica na barra inferior: **Início**, **Estudar**, **Feed
 
 - **Início (Dashboard):** saudação do dia, resumo de moedas/sequência de dias, sessões recentes e atalho para continuar estudando.
 - **Estudar:**
-  - **Modo desafio:** escolha uma área de assunto (ou "aleatório") → o app sorteia um tema dentro dela → escolha a dificuldade (Fácil 15 min, Médio 25 min, Difícil 40 min — e **Demo** de 1 min, só quando `VITE_DEMO_MODE=true`) → "Iniciar Desafio" começa o cronômetro de foco. Durante o foco dá para digitar anotações e visitar a seção **Leitura** (material de apoio sobre o tema, com um timer flutuante que continua contando). Ao concluir o ciclo, o app credita +10 moedas e +10 pontos no ranking do assunto, e leva direto para a tela de **Publicar** (sem sair da página de Estudar).
-  - **Sessão livre:** escolha a duração do foco, da pausa e a quantidade de ciclos → "Começar sessão livre". Mesmo cronômetro, mas sem assunto/tema sorteado — não gera pontos de ranking, só moedas pelos ciclos.
-- **Publicar (post):** ao final de uma sessão, escreva um texto, ou grave **áudio** ou **vídeo** direto pelo navegador (o app pede permissão de microfone/câmera). Um post publicado concede +30 moedas e +30 pontos no assunto da sessão, no máximo uma vez por sessão.
+  - **Modo desafio:** escolha uma área de assunto (ou "aleatório") → o app sorteia um tema dentro dela → escolha a dificuldade (Fácil 15 min, Médio 25 min, Difícil 40 min — e **Demo** de 1 min, só quando `VITE_DEMO_MODE=true`) → "Iniciar Desafio" começa o cronômetro de foco (sempre 1 ciclo). Durante o foco dá para digitar anotações e visitar a seção **Leitura** (material de apoio sobre o tema, com um timer flutuante que continua contando). Ao concluir o ciclo, o app credita +10 moedas e +10 pontos no ranking do assunto, e leva direto para a tela de **Publicar** (sem sair da página de Estudar).
+  - **Sessão livre:** escolha a duração do foco, da pausa e a quantidade de ciclos → "Começar sessão livre". Mesmo cronômetro, mas sem assunto/tema sorteado — cada ciclo credita moedas, com pausa entre ciclos; ao final, mostra um resumo da sessão (sem a tela de Publicar, já que não há assunto para pontuar no ranking).
+- **Publicar (post):** só no modo desafio, ao concluir o ciclo. Escreva um texto, ou grave **áudio** ou **vídeo** direto pelo navegador (o app pede permissão de microfone/câmera). Um post publicado concede +30 moedas e +30 pontos no assunto da sessão, no máximo uma vez por sessão.
 - **Feed:** lista os posts da comunidade (texto, áudio ou vídeo), com curtir, comentar, responder e salvar.
 - **Ranking:** pontuação por assunto, calculada a partir de ciclos concluídos e posts publicados (não é uma tabela separada — é recalculada na consulta).
 - **Histórico:** todas as sessões de estudo do usuário, com estatísticas (sequência de dias, tempo total) no fuso horário do navegador.
-- **Loja:** cada acessório tem um botão "Comprar" (debita o saldo e desbloqueia) e, depois de desbloqueado, um botão "Equipar" (troca o acessório ativo no personagem) — são duas ações separadas.
-- **Ajustes:** perfil (nome, cor do personagem "dot"), aparência (tema claro/escuro), conta (trocar email/senha) e sair. O botão "Restaurar dados de demonstração" só aparece no modo mock (CP5/sem backend) — no Docker/API, para recomeçar do zero use `docker compose down -v` (ver seção 5).
+- **Loja:** escolha a cor do personagem "dot" e compre acessórios com moedas — cada um tem um botão "Comprar" (debita o saldo e desbloqueia) e, depois de desbloqueado, um botão "Equipar" (troca o acessório ativo no personagem), ações separadas.
+- **Ajustes:** perfil (nome), aparência (tema claro/escuro), conta (trocar email/senha) e sair. O botão "Restaurar dados de demonstração" só aparece no modo mock (CP5/sem backend) — no Docker/API, para recomeçar do zero use `docker compose down -v` (ver seção 5).
 - **Spotify:** o player de playlists de foco curadas aparece sempre fixo na navegação inferior, sem precisar de conta. O botão "Conectar Spotify" (menu do player) é opcional e usa OAuth PKCE com a conta pessoal do usuário — ver limitações na seção 6.
 
 ## 5. Parar e remover
@@ -64,8 +64,8 @@ Depois de um `docker compose down` (sem `-v`) seguido de `docker compose up`, os
 
 - **Porta 8080 ocupada:** edite `docker-compose.yml`, troque a linha `"8080:80"` do serviço `web` para `"8081:80"` e inclua `http://127.0.0.1:8081` na variável `WEB_ORIGIN` do serviço `api` (separada por vírgula das demais origens). Depois acesse `http://127.0.0.1:8081`.
 - **Docker sem memória:** se o `docker compose up --build` travar ou os containers reiniciarem em loop, aumente a memória alocada ao Docker Desktop (Configurações → Resources) para pelo menos 4 GB.
-- **Microfone/câmera bloqueados:** confirme que está acessando por `http://127.0.0.1:8080` e não por um IP da rede local (ex. `192.168.x.x`) — só `localhost`/`127.0.0.1` e HTTPS são contextos seguros para `getUserMedia`; um IP de rede sem HTTPS bloqueia a permissão mesmo que o navegador mostre o cadeado como "não seguro, mas local". Verifique também a permissão do navegador para o site.
-- **Spotify "não liberado para o seu usuário":** o app do dot.study está em modo desenvolvedor no Spotify, limitado a 5 contas cadastradas na allowlist; o player de playlists curadas continua funcionando normalmente sem conectar a conta.
+- **Microfone/câmera bloqueados:** confirme que está acessando por `http://127.0.0.1:8080` e não por um IP da rede local (ex. `192.168.x.x`) — só `localhost`/`127.0.0.1` e HTTPS são contextos seguros para `getUserMedia`. Verifique também a permissão do navegador para o site.
+- **Spotify recusa a conexão (conta fora da allowlist):** o app do dot.study está em modo desenvolvedor no Spotify, limitado a 5 contas cadastradas na allowlist; o player de playlists curadas continua funcionando normalmente sem conectar a conta.
 
 ## 7. Rodar sem Docker (desenvolvimento)
 
