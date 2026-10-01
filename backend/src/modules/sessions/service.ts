@@ -94,6 +94,8 @@ export function createSessionService(deps: Deps) {
     async completeCycle(userId: string, id: string) {
       const now = deps.now();
       return prisma.$transaction(async (tx) => {
+        // Mesma ordem de lock do start() (usuário antes da sessão) para não haver deadlock entre os dois.
+        await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`;
         const s = await tx.studySession.findFirst({ where: { id, userId } });
         if (!s) throw new AppError("NOT_FOUND", "Sessão não encontrada.");
         const check = canCompleteCycle(toSession(s), now.getTime());

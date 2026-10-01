@@ -106,6 +106,21 @@ describe("sessions", () => {
     expect(await prisma.studySession.count({ where: { userId: "u_demo", status: "in_progress" } })).toBe(1);
   });
 
+  it("concluir ciclo e iniciar outra sessão ao mesmo tempo não dá erro 500 (sem deadlock)", async () => {
+    const { api, clock } = await setup();
+    for (let i = 0; i < 30; i++) {
+      const s = (
+        await api.post("/sessions", { mode: "free", label: null, focusMinutes: 10, breakMinutes: 2, plannedCycles: 3 })
+      ).body;
+      clock.advance(10 * 60_000);
+      const results = await Promise.all([
+        api.post(`/sessions/${s.id}/cycles`),
+        api.post("/sessions", { mode: "free", label: null, focusMinutes: 10, breakMinutes: 2, plannedCycles: 3 }),
+      ]);
+      expect(results.map((r) => r.status).every((status) => status < 500)).toBe(true);
+    }
+  });
+
   it("finalizar não sobrescreve sessão já concluída", async () => {
     const { api, clock, prisma } = await setup();
     const s = (await api.post("/sessions", { mode: "challenge", subjectId: 1, focusMinutes: 25 })).body;
