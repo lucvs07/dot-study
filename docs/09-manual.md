@@ -18,15 +18,17 @@ cd dot-study
 docker compose up --build
 ```
 
-Depois que os três serviços subirem (o terminal mostra `dotstudy-api-1` e `dotstudy-web-1` como `healthy`), abra:
+Depois que o terminal mostrar os logs do serviço `web` (o `api` fica `healthy` primeiro — o `web` só inicia depois disso, por `depends_on`), abra:
 
 ```
 http://127.0.0.1:8080
 ```
 
+Para conferir o status dos três serviços a qualquer momento: `docker compose ps` (o `api` mostra `(healthy)`; o `db` também; o `web` aparece como `running`, pois não tem healthcheck próprio).
+
 A primeira vez leva alguns minutos (build das imagens, download do Postgres, migração do banco e seed do catálogo). As próximas vezes que você rodar `docker compose up` (sem `--build`) sobem em segundos, reaproveitando as imagens já construídas.
 
-> Use sempre `http://127.0.0.1:8080`, não `http://localhost:8080`: o microfone/câmera do navegador só liberam em um "contexto seguro" (HTTPS ou IP de loopback), e `127.0.0.1` garante isso em qualquer sistema.
+> Use `http://127.0.0.1:8080`, não um IP da rede local (ex. `192.168.x.x`) nem o endereço público: o microfone/câmera do navegador só liberam em um "contexto seguro" (HTTPS ou `localhost`/`127.0.0.1`). Preferimos `127.0.0.1` a `localhost` em todas as instruções deste projeto porque o Spotify não aceita `localhost` como redirect URI do OAuth (seção 9) e o callback de conexão usa `location.origin` — manter os dois fluxos na mesma convenção evita confusão.
 
 ## 3. Entrar
 
@@ -39,16 +41,15 @@ A navegação principal fica na barra inferior: **Início**, **Estudar**, **Feed
 
 - **Início (Dashboard):** saudação do dia, resumo de moedas/sequência de dias, sessões recentes e atalho para continuar estudando.
 - **Estudar:**
-  - **Modo desafio:** escolha uma área de assunto → o app sorteia um tema dentro dela → configure a dificuldade (Fácil 15 min, Médio 25 min, Difícil 40 min — e **Demo** de 1 min, só quando `VITE_DEMO_MODE=true`) e a quantidade de ciclos → inicie o cronômetro (pomodoro de foco/pausa), digite anotações durante o foco, e ao final de cada ciclo o app credita +10 moedas (e +10 pontos no ranking do assunto, pois tem assunto).
-  - **Sessão livre:** mesmo cronômetro, mas sem assunto/tema sorteado — não gera pontos de ranking, só moedas pelos ciclos.
-  - Ao terminar a sessão, o app leva para a **Leitura** (resumo da sessão: tema, anotações, tempo total) e de lá para **Publicar**.
-- **Publicar (post):** escreva um texto, ou grave **áudio** ou **vídeo** direto pelo navegador (o app pede permissão de microfone/câmera — por isso o acesso precisa ser por `127.0.0.1`). Um post publicado concede +30 moedas e +30 pontos no assunto da sessão, no máximo uma vez por sessão.
+  - **Modo desafio:** escolha uma área de assunto (ou "aleatório") → o app sorteia um tema dentro dela → escolha a dificuldade (Fácil 15 min, Médio 25 min, Difícil 40 min — e **Demo** de 1 min, só quando `VITE_DEMO_MODE=true`) → "Iniciar Desafio" começa o cronômetro de foco. Durante o foco dá para digitar anotações e visitar a seção **Leitura** (material de apoio sobre o tema, com um timer flutuante que continua contando). Ao concluir o ciclo, o app credita +10 moedas e +10 pontos no ranking do assunto, e leva direto para a tela de **Publicar** (sem sair da página de Estudar).
+  - **Sessão livre:** escolha a duração do foco, da pausa e a quantidade de ciclos → "Começar sessão livre". Mesmo cronômetro, mas sem assunto/tema sorteado — não gera pontos de ranking, só moedas pelos ciclos.
+- **Publicar (post):** ao final de uma sessão, escreva um texto, ou grave **áudio** ou **vídeo** direto pelo navegador (o app pede permissão de microfone/câmera). Um post publicado concede +30 moedas e +30 pontos no assunto da sessão, no máximo uma vez por sessão.
 - **Feed:** lista os posts da comunidade (texto, áudio ou vídeo), com curtir, comentar, responder e salvar.
 - **Ranking:** pontuação por assunto, calculada a partir de ciclos concluídos e posts publicados (não é uma tabela separada — é recalculada na consulta).
-- **Histórico:** todas as sessões de estudo do usuário, com estatísticas (sequência de dias, tempo total, tempo de hoje) no fuso horário do navegador.
-- **Loja:** compra de acessórios para o personagem "dot" com moedas (debita o saldo e equipa no personagem).
-- **Ajustes:** dados da conta, cor do personagem, player do Spotify e sair da conta. O botão "Restaurar dados de demonstração" só aparece no modo mock (CP5/sem backend) — no Docker/API, para recomeçar do zero use `docker compose down -v` (ver seção 5).
-- **Spotify:** o player de playlists de foco curadas aparece sempre na navegação, sem precisar de conta. O botão "Conectar Spotify" (menu do player) é opcional e usa OAuth PKCE com a conta pessoal do usuário — ver limitações na seção 6.
+- **Histórico:** todas as sessões de estudo do usuário, com estatísticas (sequência de dias, tempo total) no fuso horário do navegador.
+- **Loja:** cada acessório tem um botão "Comprar" (debita o saldo e desbloqueia) e, depois de desbloqueado, um botão "Equipar" (troca o acessório ativo no personagem) — são duas ações separadas.
+- **Ajustes:** perfil (nome, cor do personagem "dot"), aparência (tema claro/escuro), conta (trocar email/senha) e sair. O botão "Restaurar dados de demonstração" só aparece no modo mock (CP5/sem backend) — no Docker/API, para recomeçar do zero use `docker compose down -v` (ver seção 5).
+- **Spotify:** o player de playlists de foco curadas aparece sempre fixo na navegação inferior, sem precisar de conta. O botão "Conectar Spotify" (menu do player) é opcional e usa OAuth PKCE com a conta pessoal do usuário — ver limitações na seção 6.
 
 ## 5. Parar e remover
 
@@ -63,7 +64,7 @@ Depois de um `docker compose down` (sem `-v`) seguido de `docker compose up`, os
 
 - **Porta 8080 ocupada:** edite `docker-compose.yml`, troque a linha `"8080:80"` do serviço `web` para `"8081:80"` e inclua `http://127.0.0.1:8081` na variável `WEB_ORIGIN` do serviço `api` (separada por vírgula das demais origens). Depois acesse `http://127.0.0.1:8081`.
 - **Docker sem memória:** se o `docker compose up --build` travar ou os containers reiniciarem em loop, aumente a memória alocada ao Docker Desktop (Configurações → Resources) para pelo menos 4 GB.
-- **Microfone/câmera bloqueados:** confirme que está acessando por `http://127.0.0.1:8080` (não `localhost`, nem o IP da rede local, ex. `192.168.x.x`) — só `127.0.0.1`/HTTPS são contextos seguros para `getUserMedia`. Verifique também a permissão do navegador para o site.
+- **Microfone/câmera bloqueados:** confirme que está acessando por `http://127.0.0.1:8080` e não por um IP da rede local (ex. `192.168.x.x`) — só `localhost`/`127.0.0.1` e HTTPS são contextos seguros para `getUserMedia`; um IP de rede sem HTTPS bloqueia a permissão mesmo que o navegador mostre o cadeado como "não seguro, mas local". Verifique também a permissão do navegador para o site.
 - **Spotify "não liberado para o seu usuário":** o app do dot.study está em modo desenvolvedor no Spotify, limitado a 5 contas cadastradas na allowlist; o player de playlists curadas continua funcionando normalmente sem conectar a conta.
 
 ## 7. Rodar sem Docker (desenvolvimento)

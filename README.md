@@ -62,7 +62,7 @@ dot-study/
 - **Conta de demonstração (válida nos dois):** `demo@dotstudy.app` / `dotstudy123`
 - Ou crie uma conta nova pelo cadastro (ganha 250 moedas de boas-vindas).
 
-> **Tempo de um desafio completo:** no modo normal, a menor dificuldade é de 15 minutos de foco. Para avaliar mais rápido, ligue `VITE_DEMO_MODE=true` (variável de ambiente na Vercel, ou `docker compose build --build-arg VITE_DEMO_MODE=true web` no Docker): libera a dificuldade "Demo" (1 minuto). A conta de demonstração já vem com loja, feed e ranking populados (840 moedas, posts e comentários de exemplo).
+> **Tempo de um desafio completo:** no modo normal, a menor dificuldade é de 15 minutos de foco. Para avaliar mais rápido, ligue `VITE_DEMO_MODE=true` (variável de ambiente na Vercel, ou `docker compose build --build-arg VITE_DEMO_MODE=true web && docker compose up -d` no Docker — sem o `--build` no `up`, senão a imagem volta a ser reconstruída sem o modo demo): libera a dificuldade "Demo" (1 minuto). A conta de demonstração já vem com loja, feed e ranking populados (840 moedas, posts e comentários de exemplo).
 
 ## Instalação rápida (Docker Compose)
 
@@ -79,7 +79,7 @@ Abra `http://127.0.0.1:8080`. Veja o manual completo (requisitos, problemas comu
 | Modo | Comando | URL |
 |---|---|---|
 | Docker (banco + API + web) | `docker compose up --build` | `http://127.0.0.1:8080` |
-| Dev com API real | `npm install && npm run dev:backend` (outro terminal) `npm run dev:api` | `http://127.0.0.1:5173` |
+| Dev com API real | `npm install`, banco e seed (ver seção 7 do manual), depois `npm run dev:backend` (outro terminal) `npm run dev:api` | `http://127.0.0.1:5173` |
 | Só-mock (sem backend) | `npm install && npm run dev` (ou `npm run dev:demo` para a dificuldade "Demo") | `http://127.0.0.1:5173` |
 
 O servidor de desenvolvimento fica em `127.0.0.1` (não `localhost`) porque o Spotify não aceita `localhost` como redirect URI do OAuth, e o microfone/câmera só liberam em contexto seguro.
@@ -114,12 +114,12 @@ Papéis definidos de forma ágil pelo próprio grupo, com base no que cada pesso
 
 | Nome | RM | Papel no CP4 | Papel no CP5 | Papel no CP6 |
 |---|---|---|---|---|
-| Lucas Rodrigues Grecco | 558261 | Scrum Master / Organização do projeto — repositório GitHub, quadro Trello e documentação inicial | Infra, CI, integração Spotify e documentação | Infra e empacotamento (Docker Compose, CI com Postgres), deploy e documentação final (manual, teste de instalação, README) |
-| Monique Ferreira dos Anjos | 558262 | UI/UX Designer — identidade visual, marca e prototipação | Telas e componentes do frontend | Telas de autenticação/sessão, gravação de áudio/vídeo no navegador e aviso de "servidor acordando" |
-| Tiago Brito Nário | 558248 | UI/UX — apoio à Monique no design e na prototipação | Telas e componentes do frontend | Integração do frontend com a API (cliente HTTP, autenticação, sessão de estudo e timer) |
-| Rafael Augusto Oliveira Silva | 555154 | UI/UX — apoio à Monique no design e na prototipação | Telas e componentes do frontend | Integração do frontend com a API (dashboard, histórico, ranking, feed, loja e ajustes) |
-| Felipe Wapf Fettback | 557217 | Apresentação — criação e apresentação do pitch do projeto | Camada de serviços mock e regras de negócio | Backend: pacote shared, upload de mídia (Cloudinary), feed/comentários/ranking e perfil/estatísticas |
-| Leonardo Tanaka Cortez | 556781 | Apresentação — criação e apresentação do pitch do projeto | Camada de serviços mock e regras de negócio | Backend: setup do Express/Prisma, autenticação JWT, sessões com anti-trapaça e loja |
+| Lucas Rodrigues Grecco | 558261 | Scrum Master / Organização do projeto — repositório GitHub, quadro Trello e documentação inicial | Infra, CI, integração Spotify e documentação | Infra e empacotamento (Dockerfiles, nginx, `docker compose up`), CI com Postgres e build das imagens, documentação final (manual, teste de instalação, README) |
+| Monique Ferreira dos Anjos | 558262 | UI/UX Designer — identidade visual, marca e prototipação | Telas e componentes do frontend | Aviso de "servidor acordando" e polimento do modo API; coautoria da seleção `VITE_DATA_SOURCE=api` e da documentação final |
+| Tiago Brito Nário | 558248 | UI/UX — apoio à Monique no design e na prototipação | Telas e componentes do frontend | Cliente HTTP e serviços de autenticação/usuário/assuntos da API; documentação final (requisitos, escopo, UML e jornada) |
+| Rafael Augusto Oliveira Silva | 555154 | UI/UX — apoio à Monique no design e na prototipação | Telas e componentes do frontend | Demais serviços do frontend ligados à API (sessões, posts, ranking, loja) e seleção `VITE_DATA_SOURCE=api` |
+| Felipe Wapf Fettback | 557217 | Apresentação — criação e apresentação do pitch do projeto | Camada de serviços mock e regras de negócio | Pacote shared, seed do banco, perfil/estatísticas, posts/comentários/ranking e upload de mídia (Cloudinary) |
+| Leonardo Tanaka Cortez | 556781 | Apresentação — criação e apresentação do pitch do projeto | Camada de serviços mock e regras de negócio | Esqueleto do backend (Express/Prisma), autenticação JWT, sessões de estudo com anti-trapaça e loja |
 
 ## Documentação
 
