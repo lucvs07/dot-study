@@ -3,8 +3,10 @@ on:
   push:
     branches: [main]
   pull_request:
+
 jobs:
-  frontend:
+  app:
+    name: shared + frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,7 +15,42 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npx --workspace @dot-study/backend prisma generate
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
+      - run: npm test -w @dot-study/shared
+      - run: npm test -w @dot-study/frontend
+      - run: npm run build -w @dot-study/frontend
+
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dotstudy_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx --workspace @dot-study/backend prisma generate
+      - run: npm test -w @dot-study/backend
+      - run: npm run build -w @dot-study/backend
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [app, backend]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build
