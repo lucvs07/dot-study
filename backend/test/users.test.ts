@@ -56,6 +56,8 @@ describe("users", () => {
       activeAccessoryId: "hat",
       dotColor: "#A35BBF",
     });
+    expect((await patch({ activeAccessoryId: "" })).body.error.code).toBe("VALIDATION");
+    expect((await patch({})).body.activeAccessoryId).toBe("hat");
     expect((await patch({ activeAccessoryId: null })).body.activeAccessoryId).toBeNull();
   });
 
@@ -91,11 +93,27 @@ describe("users", () => {
         finishedAt: new Date("2026-09-30T01:00:00.000Z"),
       },
     });
+    // 07h de 28/09 em SP (10h UTC do mesmo dia) — dia anterior consecutivo só no fuso de SP.
+    await prisma.studySession.create({
+      data: {
+        userId: reg.body.user.id,
+        mode: "free",
+        focusMinutes: 25,
+        breakMinutes: 5,
+        plannedCycles: 1,
+        completedCycles: 1,
+        status: "completed",
+        startedAt: new Date("2026-09-28T09:35:00.000Z"),
+        lastCycleAt: new Date("2026-09-28T10:00:00.000Z"),
+        finishedAt: new Date("2026-09-28T10:00:00.000Z"),
+      },
+    });
     const sp = await request(app).get("/api/v1/users/me/stats?tzOffset=180").set("Authorization", `Bearer ${token}`);
     expect(sp.body.last7Days.at(-1)).toEqual({ date: "2026-09-29", minutes: 25 });
-    expect(sp.body.streakDays).toBe(1);
+    expect(sp.body.streakDays).toBe(2);
     const utc = await request(app).get("/api/v1/users/me/stats?tzOffset=0").set("Authorization", `Bearer ${token}`);
     expect(utc.body.last7Days.at(-1)).toEqual({ date: "2026-09-30", minutes: 25 });
+    expect(utc.body.streakDays).toBe(1);
   });
 
   it("tzOffset inválido vira VALIDATION", async () => {

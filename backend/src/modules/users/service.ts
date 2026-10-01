@@ -1,4 +1,4 @@
-import { calculateStreak, offsetDayKey } from "@dot-study/shared/rules";
+import { calculateStreak, offsetDayKey, sessionMinutes } from "@dot-study/shared/rules";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import type { Deps } from "../../deps";
@@ -18,7 +18,7 @@ const dotSchema = z.object({
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, "Escolha uma cor válida.")
     .optional(),
-  activeAccessoryId: z.string().nullable().optional(),
+  activeAccessoryId: z.string().min(1, "Escolha um acessório válido.").nullable().optional(),
 });
 const statsQuery = z.object({
   tzOffset: z.coerce
@@ -67,7 +67,10 @@ export function createUserService(deps: Deps) {
     async updateDot(userId: string, body: unknown) {
       const input = parse(dotSchema, body);
       const current = await load(userId);
-      if (input.activeAccessoryId && !current.accessories.some((a) => a.accessoryId === input.activeAccessoryId)) {
+      if (
+        input.activeAccessoryId != null &&
+        !current.accessories.some((a) => a.accessoryId === input.activeAccessoryId)
+      ) {
         throw new AppError("NOT_OWNED", "Você ainda não desbloqueou esse acessório.");
       }
       const user = await prisma.user.update({
@@ -95,7 +98,7 @@ export function createUserService(deps: Deps) {
         const key = dayOf(new Date(nowMs - (6 - i) * 86_400_000));
         const minutes = sessions
           .filter((s) => dayOf(s.lastCycleAt ?? s.startedAt) === key)
-          .reduce((sum, s) => sum + s.completedCycles * s.focusMinutes, 0);
+          .reduce((sum, s) => sum + sessionMinutes(s), 0);
         return { date: key, minutes };
       });
       return {
@@ -104,7 +107,7 @@ export function createUserService(deps: Deps) {
           nowMs,
           dayOf,
         ),
-        totalMinutes: sessions.reduce((sum, s) => sum + s.completedCycles * s.focusMinutes, 0),
+        totalMinutes: sessions.reduce((sum, s) => sum + sessionMinutes(s), 0),
         completedCycles: sessions.reduce((sum, s) => sum + s.completedCycles, 0),
         last7Days,
       };

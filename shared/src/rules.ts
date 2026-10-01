@@ -15,7 +15,7 @@ export function canCompleteCycle(session: StudySession, nowMs: number): CycleChe
   return nowMs - since >= minMs ? { ok: true } : { ok: false, reason: "CYCLE_TOO_SOON" };
 }
 
-export function sessionMinutes(session: StudySession): number {
+export function sessionMinutes(session: Pick<StudySession, "completedCycles" | "focusMinutes">): number {
   return session.completedCycles * session.focusMinutes;
 }
 
