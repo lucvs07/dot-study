@@ -6,6 +6,7 @@ import {
   calculateStreak,
   canCompleteCycle,
   computeSubjectScores,
+  offsetDayKey,
   rankEntries,
   sessionMinutes,
 } from "./rules";
@@ -75,6 +76,20 @@ describe("calculateStreak", () => {
   });
   it("é zero se não estudou hoje", () => {
     expect(calculateStreak([day(28), day(27)], now)).toBe(0);
+  });
+});
+
+describe("dias no fuso do usuário", () => {
+  it("offsetDayKey usa a convenção do getTimezoneOffset (Brasil = 180)", () => {
+    const d = new Date("2026-09-30T01:00:00.000Z"); // 22h de 29/09 em São Paulo
+    expect(offsetDayKey(d, 180)).toBe("2026-09-29");
+    expect(offsetDayKey(d, 0)).toBe("2026-09-30");
+  });
+  it("calculateStreak aceita a função de dia", () => {
+    const now = Date.parse("2026-09-30T02:00:00.000Z"); // 23h de 29/09 em SP
+    const dates = ["2026-09-30T01:00:00.000Z", "2026-09-28T23:00:00.000Z"]; // 29/09 22h e 28/09 20h em SP
+    expect(calculateStreak(dates, now, (d) => offsetDayKey(d, 180))).toBe(2);
+    expect(calculateStreak(dates, now, (d) => offsetDayKey(d, 0))).toBe(1);
   });
 });
 

@@ -25,12 +25,22 @@ export function localDayKey(date: Date): string {
   return `${date.getFullYear()}-${m}-${d}`;
 }
 
-/** Dias consecutivos com estudo, contando a partir de hoje (fuso local). */
-export function calculateStreak(studyDates: ISODate[], nowMs: number): number {
-  const days = new Set(studyDates.map((iso) => localDayKey(new Date(iso))));
+/** Dia (YYYY-MM-DD) visto por alguém com `Date.getTimezoneOffset() === tzOffsetMinutes`. */
+export function offsetDayKey(date: Date, tzOffsetMinutes: number): string {
+  const shifted = new Date(date.getTime() - tzOffsetMinutes * 60_000);
+  return shifted.toISOString().slice(0, 10);
+}
+
+/** Dias consecutivos com estudo, contando a partir de hoje (fuso local por padrão). */
+export function calculateStreak(
+  studyDates: ISODate[],
+  nowMs: number,
+  dayKey: (d: Date) => string = localDayKey,
+): number {
+  const days = new Set(studyDates.map((iso) => dayKey(new Date(iso))));
   const cursor = new Date(nowMs);
   let streak = 0;
-  while (days.has(localDayKey(cursor))) {
+  while (days.has(dayKey(cursor))) {
     streak++;
     cursor.setDate(cursor.getDate() - 1);
   }
