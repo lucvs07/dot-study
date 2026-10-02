@@ -1,0 +1,12 @@
+import { defineConfig } from "tsup";
+
+export default defineConfig({
+  entry: ["src/server.ts", "src/seed.ts"],
+  format: ["esm"],
+  platform: "node",
+  target: "node22",
+  outDir: "dist",
+  clean: true,
+  sourcemap: true,
+  noExternal: ["@dot-study/shared"],
+});

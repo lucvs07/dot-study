@@ -5,4 +5,8 @@ dist/
 .env.*
 !.env.example
 !.env.demo
+!.env.test
+!.env.api
+backend/uploads/
+backend/.test-uploads/
 coverage/

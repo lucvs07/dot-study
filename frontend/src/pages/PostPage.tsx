@@ -306,7 +306,9 @@ export function PostPage() {
         ) : post.mediaUrl ? (
           mediaError ? (
             <p style={{ fontFamily: "Inter", fontSize: "0.82rem", color: "var(--muted-foreground)", marginBottom: 16 }}>
-              Esta mídia foi gravada em outro navegador e não está disponível aqui.
+              {post.mediaUrl.startsWith("idb://")
+                ? "Esta mídia foi gravada em outro navegador e não está disponível aqui."
+                : "Não foi possível carregar a mídia. Tente de novo mais tarde."}
             </p>
           ) : post.type === "audio" ? (
             <audio controls src={src ?? undefined} className="w-full mb-4" />

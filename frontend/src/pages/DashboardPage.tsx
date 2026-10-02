@@ -122,8 +122,8 @@ export function DashboardPage() {
             position: "relative",
           }}
         >
-          Cada Pomodoro gera <strong style={{ color: BRAND.yellow }}>+50 moedas</strong>. Ao finalizar, publique no feed
-          da comunidade.
+          Cada ciclo concluído gera <strong style={{ color: BRAND.yellow }}>+10 moedas</strong>. Ao finalizar, publique
+          no feed da comunidade e ganhe <strong style={{ color: BRAND.yellow }}>+30</strong>.
         </p>
         <div className="flex gap-3 mt-5" style={{ position: "relative" }}>
           <button

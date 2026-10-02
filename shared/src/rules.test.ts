@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { Author, StudySession } from "@/services/contracts";
+import type { Author, StudySession } from "./contracts";
 import {
   COINS,
   POINTS,
   calculateStreak,
   canCompleteCycle,
   computeSubjectScores,
+  offsetDayKey,
   rankEntries,
   sessionMinutes,
 } from "./rules";
@@ -78,6 +79,20 @@ describe("calculateStreak", () => {
   });
 });
 
+describe("dias no fuso do usuário", () => {
+  it("offsetDayKey usa a convenção do getTimezoneOffset (Brasil = 180)", () => {
+    const d = new Date("2026-09-30T01:00:00.000Z"); // 22h de 29/09 em São Paulo
+    expect(offsetDayKey(d, 180)).toBe("2026-09-29");
+    expect(offsetDayKey(d, 0)).toBe("2026-09-30");
+  });
+  it("calculateStreak aceita a função de dia", () => {
+    const now = Date.parse("2026-09-30T02:00:00.000Z"); // 23h de 29/09 em SP
+    const dates = ["2026-09-30T01:00:00.000Z", "2026-09-28T23:00:00.000Z"]; // 29/09 22h e 28/09 20h em SP
+    expect(calculateStreak(dates, now, (d) => offsetDayKey(d, 180))).toBe(2);
+    expect(calculateStreak(dates, now, (d) => offsetDayKey(d, 0))).toBe(1);
+  });
+});
+
 describe("ranking", () => {
   const ana: Author = { id: "u2", name: "Ana", dotColor: "#000", activeAccessoryId: null };
   const eu: Author = { id: "u1", name: "Eu", dotColor: "#111", activeAccessoryId: null };
@@ -90,13 +105,31 @@ describe("ranking", () => {
         { ...base, id: "s3", userId: "u2", subjectId: 2, completedCycles: 9 },
       ],
       [
-        { authorId: "u1", subjectId: 1 },
-        { authorId: "u1", subjectId: 1 },
-        { authorId: "u2", subjectId: 2 },
+        { id: "p1", authorId: "u1", subjectId: 1, sessionId: null },
+        { id: "p2", authorId: "u1", subjectId: 1, sessionId: null },
+        { id: "p3", authorId: "u2", subjectId: 2, sessionId: null },
       ],
     );
     expect(scores.get("u1")).toBe(70);
     expect(scores.get("u2")).toBe(40);
+  });
+  it("post de sessão só pontua se for o recompensado; post sem sessão (seed) pontua", () => {
+    const scores = computeSubjectScores(
+      1,
+      [
+        { ...base, id: "s1", userId: "u1", completedCycles: 1, rewardedPostId: "p1" },
+        { ...base, id: "s2", userId: "u2", completedCycles: 0, rewardedPostId: null },
+      ],
+      [
+        { id: "p1", authorId: "u1", subjectId: 1, sessionId: "s1" },
+        { id: "p2", authorId: "u1", subjectId: 1, sessionId: "s1" },
+        { id: "p3", authorId: "u1", subjectId: 1, sessionId: "s1" },
+        { id: "p4", authorId: "u2", subjectId: 1, sessionId: "s2" },
+        { id: "p5", authorId: "u2", subjectId: 1, sessionId: null },
+      ],
+    );
+    expect(scores.get("u1")).toBe(10 + 30);
+    expect(scores.get("u2")).toBe(30);
   });
   it("ordena por pontuação, marca o usuário atual e ignora zero", () => {
     const entries = rankEntries(

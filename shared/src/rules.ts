@@ -1,0 +1,77 @@
+import type { Author, ID, ISODate, RankEntry, StudySession } from "./contracts";
+
+export const COINS = { welcome: 250, cycle: 10, post: 30 } as const;
+export const POINTS = { cycle: 10, post: 30 } as const;
+export const CYCLE_MIN_FRACTION = 0.9;
+
+export type CycleCheck = { ok: true } | { ok: false; reason: "CYCLE_TOO_SOON" | "SESSION_CLOSED" };
+
+export function canCompleteCycle(session: StudySession, nowMs: number): CycleCheck {
+  if (session.status !== "in_progress" || session.completedCycles >= session.plannedCycles) {
+    return { ok: false, reason: "SESSION_CLOSED" };
+  }
+  const since = new Date(session.lastCycleAt ?? session.startedAt).getTime();
+  const minMs = CYCLE_MIN_FRACTION * session.focusMinutes * 60_000;
+  return nowMs - since >= minMs ? { ok: true } : { ok: false, reason: "CYCLE_TOO_SOON" };
+}
+
+export function sessionMinutes(session: Pick<StudySession, "completedCycles" | "focusMinutes">): number {
+  return session.completedCycles * session.focusMinutes;
+}
+
+export function localDayKey(date: Date): string {
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${m}-${d}`;
+}
+
+/** Dia (YYYY-MM-DD) visto por alguém com `Date.getTimezoneOffset() === tzOffsetMinutes`. */
+export function offsetDayKey(date: Date, tzOffsetMinutes: number): string {
+  const shifted = new Date(date.getTime() - tzOffsetMinutes * 60_000);
+  return shifted.toISOString().slice(0, 10);
+}
+
+/** Dias consecutivos com estudo, contando a partir de hoje (fuso local por padrão). */
+export function calculateStreak(
+  studyDates: ISODate[],
+  nowMs: number,
+  dayKey: (d: Date) => string = localDayKey,
+): number {
+  const days = new Set(studyDates.map((iso) => dayKey(new Date(iso))));
+  const cursor = new Date(nowMs);
+  let streak = 0;
+  while (days.has(dayKey(cursor))) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+export type ScoreSession = Pick<StudySession, "id" | "userId" | "subjectId" | "completedCycles" | "rewardedPostId">;
+export type ScorePost = { id: ID; authorId: ID; subjectId: number | null; sessionId: ID | null };
+
+/**
+ * Pontos do assunto: 10 por ciclo concluído + 30 por post que pontua. Um post pontua se não
+ * veio de sessão (dados do seed) ou se é o post recompensado da sua sessão (no máximo 1 por
+ * sessão, e só sessão com ciclo concluído recebe recompensa).
+ */
+export function computeSubjectScores(subjectId: number, sessions: ScoreSession[], posts: ScorePost[]): Map<ID, number> {
+  const scores = new Map<ID, number>();
+  const add = (userId: ID, value: number) => scores.set(userId, (scores.get(userId) ?? 0) + value);
+  const rewarded = new Set<ID>();
+  for (const s of sessions) {
+    if (s.rewardedPostId) rewarded.add(s.rewardedPostId);
+    if (s.subjectId === subjectId) add(s.userId, s.completedCycles * POINTS.cycle);
+  }
+  for (const p of posts) {
+    if (p.subjectId === subjectId && (p.sessionId === null || rewarded.has(p.id))) add(p.authorId, POINTS.post);
+  }
+  return scores;
+}
+
+export function rankEntries(scores: Map<ID, number>, authors: Map<ID, Author>, meId: ID | null): RankEntry[] {
+  return [...scores.entries()]
+    .filter(([id, score]) => score > 0 && authors.has(id))
+    .sort((a, b) => b[1] - a[1] || authors.get(a[0])!.name.localeCompare(authors.get(b[0])!.name))
+    .map(([id, score], i) => ({ position: i + 1, user: authors.get(id)!, score, isMe: id === meId }));
+}

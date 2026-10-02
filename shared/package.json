@@ -1,0 +1,18 @@
+{
+  "name": "@dot-study/shared",
+  "private": true,
+  "version": "0.6.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./contracts": "./src/contracts.ts",
+    "./rules": "./src/rules.ts",
+    "./catalog": "./src/catalog.ts",
+    "./demo": "./src/demo.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "lint": "eslint src --max-warnings=0"
+  }
+}

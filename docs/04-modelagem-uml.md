@@ -1,109 +1,129 @@
 # Modelagem UML
 
-Diagramas em Mermaid, renderizados diretamente no GitHub (sem depender de ferramenta externa). Os diagramas de classes e casos de uso foram atualizados para o modelo do CP5 (`docs/superpowers/specs/2026-09-29-dot-study-cp5-cp6-design.md`, seção 4); os diagramas de sequência e de atividade são novos neste checkpoint e descrevem o comportamento real do código em `frontend/src/`.
+Diagramas em Mermaid, renderizados diretamente no GitHub (sem depender de ferramenta externa) e validados localmente com `@mermaid-js/mermaid-cli`. O diagrama de classes reflete o schema real do Prisma (`backend/prisma/schema.prisma`); os diagramas de sequência descrevem o código real dos dois modos — mock (`frontend/src/services/mock/`) e API (`frontend/src/services/api/` + `backend/src/modules/`) —; o diagrama de implantação cobre o deploy final e a instalação via Docker Compose.
 
 ## Diagrama de Classes
 
+Modelo do banco de dados (`backend/prisma/schema.prisma`), já no modo API do CP6: inclui a entidade `Media` (um arquivo de áudio/vídeo enviado por um usuário) e o campo `Post.mediaId`, que liga um post à mídia que ele usa.
+
 ```mermaid
 classDiagram
-    class Usuario {
+    class User {
         +id
-        +nome
+        +name
         +email
-        +senhaHash
-        +moedas
-        +corDot
-        +acessorioAtivoId
-        +criadoEm
+        +passwordHash
+        +coins
+        +dotColor
+        +activeAccessoryId
+        +createdAt
     }
-    class Assunto {
+    class Subject {
         +id
-        +nome
-        +cor
+        +name
+        +color
+        +icon
     }
-    class Tema {
+    class Theme {
         +id
-        +titulo
-        +assuntoId
+        +title
+        +subjectId
     }
-    class SessaoEstudo {
+    class StudySession {
         +id
-        +usuarioId
-        +modo
-        +assuntoId
-        +temaId
-        +rotulo
-        +minutosFoco
-        +minutosPausa
-        +ciclosPlanejados
-        +ciclosConcluidos
-        +anotacoes
+        +userId
+        +mode
+        +subjectId
+        +themeId
+        +label
+        +focusMinutes
+        +breakMinutes
+        +plannedCycles
+        +completedCycles
+        +notes
         +status
-        +iniciadaEm
-        +ultimoCicloEm
-        +finalizadaEm
+        +startedAt
+        +lastCycleAt
+        +finishedAt
+        +rewardedPostId
     }
     class Post {
         +id
-        +usuarioId
-        +sessaoId
-        +assuntoId
-        +tipo
-        +titulo
-        +conteudo
-        +midiaUrl
-        +midiaDuracaoSeg
-        +criadoEm
+        +authorId
+        +sessionId
+        +subjectId
+        +type
+        +title
+        +content
+        +mediaId
+        +mediaUrl
+        +mediaDurationSec
+        +baseLikeCount
+        +createdAt
     }
-    class Comentario {
+    class Media {
+        +id
+        +ownerId
+        +url
+        +kind
+        +durationSec
+        +sizeBytes
+        +createdAt
+    }
+    class Comment {
         +id
         +postId
-        +usuarioId
+        +authorId
         +parentId
-        +conteudo
-        +criadoEm
+        +content
+        +createdAt
     }
-    class Curtida {
-        +usuarioId
+    class Like {
+        +userId
         +postId
     }
-    class Salvo {
-        +usuarioId
+    class Save {
+        +userId
         +postId
     }
-    class Acessorio {
+    class Accessory {
         +id
-        +chave
-        +nome
-        +tipo
-        +custoMoedas
+        +name
+        +cost
     }
-    class TransacaoMoeda {
+    class UserAccessory {
+        +userId
+        +accessoryId
+        +unlockedAt
+    }
+    class CoinTransaction {
         +id
-        +usuarioId
-        +valor
-        +motivo
-        +referenciaId
-        +criadoEm
+        +userId
+        +amount
+        +reason
+        +refId
+        +createdAt
     }
 
-    Usuario "1" --> "*" SessaoEstudo
-    Usuario "1" --> "*" Post
-    Usuario "1" --> "*" Comentario
-    Usuario "1" --> "*" TransacaoMoeda
-    Usuario "*" --> "*" Acessorio : desbloqueou
-    SessaoEstudo "1" --> "0..1" Post : rendeu
-    SessaoEstudo "*" --> "0..1" Tema
-    SessaoEstudo "*" --> "0..1" Assunto
-    Tema "*" --> "1" Assunto
-    Post "*" --> "0..1" Assunto
-    Post "1" --> "*" Comentario
-    Post "1" --> "*" Curtida
-    Post "1" --> "*" Salvo
-    Comentario "0..1" --> "*" Comentario : respostas
+    User "1" --> "*" StudySession
+    User "1" --> "*" Post
+    User "1" --> "*" Comment
+    User "1" --> "*" CoinTransaction
+    User "1" --> "*" Media : dono (ownerId)
+    User "*" --> "*" Accessory : UserAccessory (desbloqueou)
+    StudySession "1" --> "0..1" Post : rewardedPostId
+    StudySession "*" --> "0..1" Theme
+    StudySession "*" --> "0..1" Subject
+    Theme "*" --> "1" Subject
+    Post "*" --> "0..1" Subject
+    Post "0..1" --> "1" Media : mediaId (unique)
+    Post "1" --> "*" Comment
+    Post "1" --> "*" Like
+    Post "1" --> "*" Save
+    Comment "0..1" --> "*" Comment : replies (parentId)
 ```
 
-> **Notas sobre as mudanças em relação ao CP4** (detalhadas em `docs/08-jornada.md`): `PerfilDot` foi incorporado ao `Usuario` (`corDot` + `acessorioAtivoId`); `Artigo` virou `Post`, com campo `tipo` (`texto`/`audio`/`video`) e campos de mídia; `Comentario` ganhou `parentId` para permitir respostas; `Curtida` e `Salvo` são novas entidades de chave composta (usuário + post); `TransacaoMoeda` registra cada crédito/débito de moeda (motivo: boas-vindas, ciclo, post ou compra). **`RankingEntry` deixou de ser uma classe/tabela**: o ranking é calculado por consulta sobre `SessaoEstudo` e `Post` (ver `computeSubjectScores` em `frontend/src/domain/rules.ts`), evitando dado duplicado.
+> **Notas sobre o modelo** (histórico completo em `docs/08-jornada.md`): `PerfilDot` foi incorporado ao `User` (`dotColor` + `activeAccessoryId`); `Post` tem campo `type` (`text`/`audio`/`video`) e campos de mídia; `Comment` tem `parentId` para permitir respostas; `Like` e `Save` são entidades de chave composta (`userId` + `postId`); `CoinTransaction` registra cada crédito/débito de moeda (`reason`: `welcome`, `cycle`, `post` ou `purchase`). **Nenhuma tabela de ranking existe**: a pontuação por assunto é calculada por consulta sobre `StudySession` e `Post` (`modules/rankings/service.ts` no backend; `computeSubjectScores` em `frontend/src/domain/rules.ts` no mock), evitando dado duplicado. `Media` é dona do arquivo (`ownerId`, URL, tipo, duração, tamanho); um post só referencia uma mídia já enviada pelo próprio autor e ainda não usada em outro post (`mediaId` é `@unique`, e o resolver de mídia do backend confere `ownerId`/`kind`/`post: null` antes de aceitar).
 
 ## Diagrama de Caso de Uso
 
@@ -142,106 +162,319 @@ flowchart LR
     UC2 -. include .-> UC3
 ```
 
-## Diagrama de Sequência — Login
+## Diagrama de Sequência — Login com JWT (modo API)
 
-Representa `frontend/src/pages/LoginPage.tsx` chamando `useAuth` (`frontend/src/hooks/useAuth.ts`), que delega ao `AuthService` mockado (`frontend/src/services/mock/auth.ts`), lido/gravado no `MockDb` sobre `localStorage`.
+Representa `frontend/src/pages/LoginPage.tsx` chamando `useAuth` (`frontend/src/hooks/useAuth.tsx`), que delega a `createApiAuthService` (`frontend/src/services/api/auth.ts`) sobre o `http.ts` (`frontend/src/services/api/http.ts`). No backend, `POST /api/v1/auth/login` é tratado por `modules/auth/service.ts`, que compara a senha com `bcryptjs` e assina um JWT (`signToken`, HS256, validade 7 dias). O token volta para o frontend e é guardado em `localStorage["dotstudy:token"]` (`services/api/tokens.ts`).
 
 ```mermaid
 sequenceDiagram
     actor U as Usuário
     participant LP as LoginPage
     participant Auth as useAuth
-    participant Svc as AuthService (mock)
-    participant DB as MockDb / localStorage
+    participant Svc as services/api/auth.ts
+    participant Http as http.ts
+    participant API as POST /api/v1/auth/login
+    participant AuthSvc as modules/auth/service.ts
+    participant DB as PostgreSQL
+    participant LS as localStorage
 
     U ->> LP: preenche email e senha
     LP ->> Auth: login(email, senha)
-    Auth ->> Svc: auth.login({ email, senha })
-    Svc ->> DB: ler usuários
-    alt credencial inválida
-        DB -->> Svc: nenhum usuário com esse hash
-        Svc -->> Auth: ServiceError INVALID_CREDENTIALS
+    Auth ->> Svc: auth.login({ email, password })
+    Svc ->> Http: http.request("POST", "/auth/login", { body })
+    Http ->> API: fetch com Content-Type: application/json
+    API ->> AuthSvc: login(body)
+    AuthSvc ->> DB: prisma.user.findUnique({ email })
+    alt usuário não existe ou senha não confere
+        AuthSvc ->> AuthSvc: bcrypt.compare(password, passwordHash) = false
+        AuthSvc -->> API: AppError INVALID_CREDENTIALS
+        API -->> Http: 401 { error: { code, message } }
+        Http -->> Svc: throw ServiceError
+        Svc -->> Auth: erro
         Auth -->> LP: erro
         LP -->> U: "Email ou senha incorretos."
     else credencial válida
-        DB -->> Svc: usuário encontrado
-        Svc ->> DB: gravar currentUserId
+        DB -->> AuthSvc: User
+        AuthSvc ->> AuthSvc: signToken(env, user.id) (JWT HS256, 7d)
+        AuthSvc -->> API: { token, user }
+        API -->> Http: 200 { token, user }
+        Http ->> LS: tokens.set(token) ("dotstudy:token")
+        Http -->> Svc: user
         Svc -->> Auth: User
-        Auth ->> Auth: queryClient.setQueryData(me, User)
+        Auth ->> Auth: queryClient.setQueryData(queryKeys.me, User)
         Auth -->> LP: sucesso
         LP -->> U: navega para "/"
     end
 ```
 
-## Diagrama de Sequência — Sessão de estudo até publicação
+## Diagrama de Sequência — Sessão de estudo, ciclo e publicação na API
 
-Representa `frontend/src/pages/EstudarPage.tsx` e `frontend/src/content/StudyContext.tsx` (contador em `frontend/src/hooks/useCountdown.ts`), a conclusão de ciclo em `frontend/src/services/mock/sessions.ts`, e a publicação via `frontend/src/components/PostPublisher.tsx` (upload em `frontend/src/services/mock/media.ts`, criação do post em `frontend/src/services/mock/posts.ts`).
+Representa `frontend/src/content/StudyContext.tsx` (contador em `frontend/src/hooks/useCountdown.ts`) chamando `services/api/sessions.ts`, que fala com `POST /sessions` e `POST /sessions/:id/cycles` (`modules/sessions/service.ts`); a publicação via `frontend/src/components/PostPublisher.tsx`, que sobe a mídia por `services/api/media.ts` → `POST /uploads` (multer → sniff da assinatura do arquivo → `StorageDriver`, em `modules/uploads/`) e cria o post por `services/api/posts.ts` → `POST /posts` (`modules/posts/service.ts`, com `ownedMediaResolver` ligando a mídia já enviada ao post).
 
 ```mermaid
 sequenceDiagram
     actor U as Usuário
-    participant EP as EstudarPage
     participant SC as StudyContext
-    participant CD as useCountdown
-    participant SSvc as SessionService (mock)
+    participant SSvc as services/api/sessions.ts
+    participant SessAPI as POST /sessions · /sessions/:id/cycles
+    participant SessSvc as modules/sessions/service.ts
     participant PP as PostPublisher
-    participant MSvc as MediaService (mock)
-    participant PSvc as PostService (mock)
-    participant Feed as FeedPage
+    participant MSvc as services/api/media.ts
+    participant UpAPI as POST /uploads (multer)
+    participant UpSvc as modules/uploads/service.ts
+    participant Storage as StorageDriver
+    participant PSvc as services/api/posts.ts
+    participant PostAPI as POST /posts
+    participant PostSvc as modules/posts/service.ts
+    participant DB as PostgreSQL
 
-    U ->> EP: escolhe desafio e inicia
-    EP ->> SC: startSession(input)
+    U ->> SC: escolhe desafio e inicia
     SC ->> SSvc: sessions.start(input)
-    SSvc -->> SC: StudySession (in_progress)
-    SC ->> CD: start(minutosFoco * 60)
-    CD -->> SC: onFinish() (contagem chega a 0)
+    SSvc ->> SessAPI: POST /sessions
+    SessAPI ->> SessSvc: start(userId, body)
+    SessSvc ->> DB: studySession.create (transação)
+    DB -->> SessSvc: StudySession (in_progress)
+    SessSvc -->> SessAPI: 201 StudySession
+    SessAPI -->> SSvc: StudySession
+    SSvc -->> SC: StudySession
+    SC ->> SC: useCountdown conta focusMinutes
+
     SC ->> SSvc: sessions.completeCycle(sessionId)
-    SSvc -->> SC: { session, reward: +10 moedas }
-    SC ->> SC: phase = "publishing"
-    SC -->> EP: exibe convite para publicar
-    U ->> PP: grava áudio/vídeo (ou digita texto) e confirma
-    opt post com mídia
-        PP ->> MSvc: media.upload(blob, tipo, duração)
-        MSvc -->> PP: { url, duracaoSeg }
+    SSvc ->> SessAPI: POST /sessions/:id/cycles
+    SessAPI ->> SessSvc: completeCycle(userId, id)
+    SessSvc ->> SessSvc: canCompleteCycle(session, now) (≥ 0,9 × focusMinutes)
+    alt ciclo cedo demais ou sessão encerrada
+        SessSvc -->> SessAPI: AppError CYCLE_TOO_SOON / SESSION_CLOSED
+        SessAPI -->> SSvc: 409 erro
+    else ciclo aceito
+        SessSvc ->> DB: updateMany (where completedCycles = atual) — update condicional
+        DB -->> SessSvc: count = 1
+        SessSvc ->> DB: user.update coins += 10, coinTransaction "cycle"
+        SessSvc -->> SessAPI: { session, reward: +10 moedas }
+        SessAPI -->> SSvc: 200
+        SSvc -->> SC: reward
+        SC ->> SC: phase = "publishing"
     end
-    PP ->> PSvc: posts.create({ sessionId, tipo, midiaUrl? })
-    PSvc -->> PP: { post, reward: +30 moedas (1ª desta sessão) }
-    PP -->> Feed: navega e exibe o novo post
+
+    U ->> PP: grava áudio/vídeo e confirma
+    opt post com mídia
+        PP ->> MSvc: media.upload(blob, kind, durationSec)
+        MSvc ->> UpAPI: POST /uploads (FormData)
+        UpAPI ->> UpSvc: upload(userId, file, body)
+        UpSvc ->> UpSvc: sniffContainer(head) + MIME + MEDIA_LIMITS
+        UpSvc ->> Storage: storage.save({ tmpPath, ext })
+        Storage -->> UpSvc: { url }
+        UpSvc ->> DB: media.create (ownerId, url, kind, durationSec)
+        UpSvc -->> UpAPI: { url, durationSec }
+        UpAPI -->> MSvc: 201
+        MSvc -->> PP: { url, durationSec }
+    end
+    PP ->> PSvc: posts.create({ sessionId, type, mediaUrl? })
+    PSvc ->> PostAPI: POST /posts
+    PostAPI ->> PostSvc: create(userId, body)
+    PostSvc ->> DB: ownedMediaResolver liga Media (ownerId, post null) ao post
+    PostSvc ->> DB: post.create
+    alt sessão tem ≥ 1 ciclo e ainda sem recompensa
+        PostSvc ->> DB: studySession.updateMany (rewardedPostId = null) — update condicional
+        DB -->> PostSvc: count = 1
+        PostSvc ->> DB: user.update coins += 30, coinTransaction "post"
+        PostSvc -->> PostAPI: { post, reward: +30 moedas }
+    else sessão já recompensada
+        PostSvc -->> PostAPI: { post, reward: null }
+    end
+    PostAPI -->> PSvc: 201
+    PSvc -->> PP: { post, reward }
+    PP -->> U: navega para o feed com o novo post
 ```
+
+## Diagrama de Sequência — Upload de mídia e ramos de erro
+
+Representa `modules/uploads/service.ts`: a validação acontece em camadas (MIME declarado pelo navegador → assinatura real do arquivo lida do disco → tamanho → duração informada pelo cliente), cada uma podendo encerrar o fluxo com um `ServiceErrorCode` específico (`MEDIA_UNSUPPORTED`, `MEDIA_TOO_LARGE`, `MEDIA_TOO_LONG`) antes de gravar no `StorageDriver`.
+
+```mermaid
+sequenceDiagram
+    actor U as Usuário
+    participant PP as PostPublisher
+    participant MSvc as services/api/media.ts
+    participant API as POST /uploads
+    participant UpSvc as modules/uploads/service.ts
+    participant Storage as StorageDriver
+
+    U ->> PP: grava ou envia arquivo (kind, durationSec)
+    PP ->> MSvc: media.upload(blob, kind, durationSec)
+    MSvc ->> API: POST /uploads (multipart, multer.single("file"))
+    API ->> UpSvc: upload(userId, file, body)
+    UpSvc ->> UpSvc: file.mimetype começa com "kind/"?
+    alt MIME não bate com o kind declarado
+        UpSvc -->> API: AppError MEDIA_UNSUPPORTED
+    else MIME ok
+        UpSvc ->> UpSvc: sniffContainer(primeiros 16 bytes do arquivo)
+        alt assinatura de arquivo não reconhecida ou não permitida para o kind
+            UpSvc -->> API: AppError MEDIA_UNSUPPORTED
+        else assinatura válida (webm/mp4/ogg/mpeg/wav)
+            UpSvc ->> UpSvc: file.size > MEDIA_LIMITS[kind].maxBytes?
+            alt arquivo grande demais
+                UpSvc -->> API: AppError MEDIA_TOO_LARGE
+            else tamanho ok
+                UpSvc ->> UpSvc: durationSec > MEDIA_LIMITS[kind].maxSeconds?
+                alt duração informada pelo cliente excede o limite
+                    UpSvc -->> API: AppError MEDIA_TOO_LONG
+                else duração ok
+                    UpSvc ->> Storage: storage.save({ tmpPath, ext, mimeType })
+                    Storage -->> UpSvc: { url }
+                    UpSvc ->> UpSvc: prisma.media.create (ownerId, url, kind, durationSec, sizeBytes)
+                    UpSvc -->> API: 201 { url, durationSec }
+                end
+            end
+        end
+    end
+    API -->> MSvc: resposta (200/201 ou erro { code, message })
+    MSvc -->> PP: resultado
+    PP -->> U: mídia pronta ou mensagem de erro em pt-BR
+```
+
+> A duração (`durationSec`) é declarada pelo navegador (medida pelo `MediaRecorder`/`<video>`/`<audio>`), não recalculada no servidor — ver trade-off em `docs/08-jornada.md`.
 
 ## Diagrama de Sequência — Compra na loja
 
-Representa `frontend/src/pages/LojaPage.tsx` chamando `ShopService.purchase` (`frontend/src/services/mock/shop.ts`).
+Representa `frontend/src/pages/LojaPage.tsx` chamando `ShopService.purchase`. No modo mock, `frontend/src/services/mock/shop.ts` lê/grava o `MockDb` sobre `localStorage`; no modo API, `frontend/src/services/api/shop.ts` chama `POST /api/v1/shop/purchase`, tratado por `modules/shop/service.ts` — a chave primária composta (`userId`, `accessoryId`) de `UserAccessory` impede o desbloqueio em duplicidade sob concorrência, e um `updateMany` condicional (`coins >= cost`) evita saldo negativo.
 
 ```mermaid
 sequenceDiagram
     actor U as Usuário
     participant LJ as LojaPage
-    participant Svc as ShopService (mock)
-    participant DB as MockDb / localStorage
+    participant Svc as ShopService (mock ou api)
+    participant DB as MockDb/localStorage ou PostgreSQL
 
     U ->> LJ: clica em "Comprar" acessório
     LJ ->> Svc: shop.purchase(accessoryId)
     Svc ->> DB: ler usuário atual
     alt já possui o acessório
-        DB -->> Svc: unlockedAccessoryIds contém o item
+        DB -->> Svc: UserAccessory já existe (userId, accessoryId)
         Svc -->> LJ: ServiceError ALREADY_OWNED
         LJ -->> U: "Você já tem esse acessório."
     else saldo insuficiente
-        DB -->> Svc: moedas < custo
+        DB -->> Svc: coins < cost
         Svc -->> LJ: ServiceError INSUFFICIENT_COINS
         LJ -->> U: "Moedas insuficientes."
     else compra válida
-        DB -->> Svc: moedas >= custo
-        Svc ->> DB: desbloqueia acessório e debita moedas (TransacaoMoeda "compra")
+        DB -->> Svc: coins >= cost
+        Svc ->> DB: cria UserAccessory e debita coins (CoinTransaction "purchase")
         Svc -->> LJ: User atualizado
         LJ -->> U: acessório desbloqueado, moedas atualizadas
     end
 ```
 
-## Diagrama de Atividade — Fluxo de estudo
+## Diagrama de Sequência — Conexão Spotify (PKCE)
 
-Representa o fluxo controlado por `frontend/src/content/StudyContext.tsx` em `frontend/src/pages/EstudarPage.tsx`: escolha do modo, ciclos de foco/pausa via `useCountdown`, e o desfecho (publicar no modo desafio, resumo no modo livre).
+Representa `frontend/src/components/spotify/SpotifyPlayer.tsx` gerando o par verifier/challenge (`frontend/src/spotify/pkce.ts`) e redirecionando para `accounts.spotify.com`; o retorno é tratado por `frontend/src/pages/SpotifyCallbackPage.tsx` (rota `/spotify/callback`), que troca o código por um token (`exchangeCode`, `frontend/src/spotify/spotifyApi.ts`) e o guarda com `saveToken` (`sessionStorage`, evento `dotstudy:spotify-token`). O `SpotifyPlayer` escuta esse evento e busca as playlists do usuário.
+
+```mermaid
+sequenceDiagram
+    actor U as Usuário
+    participant SP as SpotifyPlayer
+    participant PKCE as spotify/pkce.ts
+    participant SS as sessionStorage
+    participant Spotify as accounts.spotify.com
+    participant CB as SpotifyCallbackPage (/spotify/callback)
+    participant API as spotify/spotifyApi.ts
+    participant Player as SpotifyPlayer (playlists)
+
+    U ->> SP: clica em "Conectar Spotify"
+    SP ->> PKCE: generateVerifier() + challengeFromVerifier(verifier)
+    SP ->> SS: salva { verifier, state } em "dotstudy:spotify:pkce"
+    SP ->> Spotify: location.assign(buildAuthorizeUrl({ clientId, redirectUri, challenge, state }))
+    U ->> Spotify: autoriza o app (ou cancela)
+    Spotify -->> CB: redireciona para /spotify/callback?code&state (ou ?error)
+    CB ->> SS: lê e remove { verifier, state }
+    alt erro, sem code, ou state não confere
+        CB -->> U: "Conexão com o Spotify cancelada." (ErrorMessage)
+    else code e state válidos
+        CB ->> API: exchangeCode({ clientId, code, verifier, redirectUri })
+        API ->> Spotify: POST /api/token (code_verifier)
+        alt troca falha (rede ou resposta não ok)
+            Spotify -->> API: erro
+            API -->> CB: SpotifyError
+            CB -->> U: exibe erro, botão "Voltar"
+        else troca ok
+            Spotify -->> API: { access_token, expires_in }
+            API -->> CB: SpotifyToken
+            CB ->> API: saveToken(token)
+            API ->> SS: grava em "dotstudy:spotify" + dispatch "dotstudy:spotify-token"
+            CB -->> U: navega para "/"
+            Player ->> Player: subscribeToken() reage ao evento, connected = true
+            Player ->> API: getMyPlaylists(token)
+            alt 403 (fora da allowlist) ou 401 (expirado)
+                API -->> Player: SpotifyError (not_allowed / expired)
+                Player ->> API: clearToken()
+                Player -->> U: aviso + volta a tocar playlists curadas do dot.study
+            else 200
+                API -->> Player: SpotifyPlaylist[]
+                Player -->> U: mostra "Suas playlists" + playlists curadas
+            end
+        end
+    end
+```
+
+## Diagrama de Sequência — Sessão expirada
+
+Representa `frontend/src/services/api/http.ts`: uma resposta `401` com código `UNAUTHORIZED` (token ausente, inválido ou expirado) apaga o token (`tokens.set(null)`) e dispara o evento `dotstudy:unauthorized`, ouvido por `AppProviders` (`frontend/src/app/providers.tsx`), que zera a query `me`. Outros `401`, como `INVALID_CREDENTIALS` ao errar a senha atual em Ajustes, só viram erro na tela e mantêm a sessão. O `ProtectedRoute` (`frontend/src/app/ProtectedRoute.tsx`), observando `useAuth()`, troca o `<Outlet/>` por um redirecionamento para `/login` assim que `user` fica `null`.
+
+```mermaid
+sequenceDiagram
+    actor U as Usuário
+    participant Page as Página protegida
+    participant Svc as services/api/*.ts
+    participant Http as http.ts
+    participant API as API (qualquer rota autenticada)
+    participant LS as localStorage
+    participant Prov as AppProviders (providers.tsx)
+    participant PR as ProtectedRoute
+
+    U ->> Page: continua usando o app com o token expirado
+    Page ->> Svc: chama qualquer serviço (ex.: sessions.list())
+    Svc ->> Http: http.request(...)
+    Http ->> API: fetch com Authorization: Bearer <token>
+    API -->> Http: 401 { error: { code: "UNAUTHORIZED" } }
+    Http ->> LS: tokens.set(null) (remove "dotstudy:token")
+    Http ->> Http: window.dispatchEvent(new Event("dotstudy:unauthorized"))
+    Http -->> Svc: throw ServiceError UNAUTHORIZED
+    Prov ->> Prov: listener de "dotstudy:unauthorized" (registrado em AppProviders)
+    Prov ->> Prov: queryClient.setQueryData(queryKeys.me, null)
+    PR ->> PR: useAuth() observa queryKeys.me → user = null
+    PR -->> U: <Navigate to="/login" replace state={{ from }} />
+```
+
+## Diagrama de Implantação
+
+```mermaid
+flowchart LR
+    subgraph Deploy["Deploy final (CP6)"]
+        direction LR
+        Browser1["Navegador"] -->|"HTTPS (HTML/JS/CSS)"| Vercel["Vercel — frontend estático\nVITE_DATA_SOURCE=api"]
+        Browser1 -->|"HTTPS + CORS\nVITE_API_URL/api/v1/*"| Render["Render — API Express\n(hiberna no plano free)"]
+        Render -->|Prisma| Neon["Neon — PostgreSQL"]
+        Render -->|STORAGE_DRIVER=cloudinary| Cloudinary["Cloudinary — mídia (áudio/vídeo)"]
+    end
+
+    subgraph Docker["Docker Compose (instalação local)"]
+        direction LR
+        Browser2["Navegador"] -->|"http://127.0.0.1:8080"| Nginx["nginx:8080 (web)"]
+        Nginx -->|"/api/ e /media/"| Api2["api:3000 (Express)"]
+        Api2 -->|Prisma| Db2["db:5432 (Postgres)"]
+        Api2 -->|STORAGE_DRIVER=local| Vol["volume uploads"]
+    end
+```
+
+> No deploy final, a Vercel só serve os arquivos estáticos do frontend (`frontend/vercel.json` tem apenas o rewrite de SPA para `index.html`, sem proxy). O navegador chama a API direto no Render, pela URL absoluta de `VITE_API_URL` (embutida no build) + `/api/v1/*`, via HTTPS; o Render aceita a origem da Vercel por CORS, configurada em `WEB_ORIGIN`. No Docker, o `nginx.conf` do serviço `web` faz proxy de `/api/` e `/media/` para `api:3000`, então o navegador fala só com `127.0.0.1:8080` (mesma origem, sem CORS) — ver `frontend/nginx.conf` e `docker-compose.yml`.
+
+## Diagramas de Atividade (CP5, continuam valendo)
+
+Os diagramas abaixo descrevem o fluxo de telas, que não mudou do CP5 para o CP6 (RNF04): o que muda é só a camada de dados por trás (mock ou API), conforme `VITE_DATA_SOURCE`.
+
+### Fluxo de estudo
+
+Representa o fluxo controlado por `frontend/src/content/StudyContext.tsx` em `frontend/src/pages/EstudarPage.tsx`: escolha do modo, ciclos de foco/pausa via `useCountdown`, e o desfecho (publicar no modo desafio, resumo no modo livre). No modo mock, `startSession`/`completeCycle` são resolvidos por `frontend/src/services/mock/sessions.ts`; no modo API, pelas rotas `POST /sessions` e `POST /sessions/:id/cycles` descritas no diagrama de sequência acima.
 
 ```mermaid
 flowchart TD
@@ -261,9 +494,9 @@ flowchart TD
     K --> L
 ```
 
-## Diagrama de Atividade — Publicação
+### Publicação
 
-Representa `frontend/src/components/PostPublisher.tsx`: escolha do tipo de post, gravação/envio de mídia (áudio ou vídeo, via `frontend/src/hooks/useMediaRecorder.ts`), validação de limites e a recompensa condicional.
+Representa `frontend/src/components/PostPublisher.tsx`: escolha do tipo de post, gravação/envio de mídia (áudio ou vídeo, via `frontend/src/hooks/useMediaRecorder.ts`), validação de limites e a recompensa condicional. No modo mock, o upload e a criação do post são resolvidos por `frontend/src/services/mock/media.ts` e `frontend/src/services/mock/posts.ts` (blob guardado no IndexedDB); no modo API, pelas rotas `POST /uploads` e `POST /posts` (`modules/uploads/` e `modules/posts/`), com a validação de limite e assinatura do arquivo feita no servidor em vez do navegador.
 
 ```mermaid
 flowchart TD
@@ -277,9 +510,9 @@ flowchart TD
     C --> H[Enviar]
     G --> H
     H --> I[Criar post]
-    I --> J{Sessão já teve recompensa?}
-    J -->|Não| K[Creditar +30 moedas / +30 pontos se houver assunto]
-    J -->|Sim| L[Sem recompensa adicional]
+    I --> J{Sessão com ciclo concluído e ainda sem recompensa?}
+    J -->|Sim| K[Creditar +30 moedas / +30 pontos no assunto da sessão]
+    J -->|Não| L[Sem recompensa nem pontos]
     K --> M([Fim])
     L --> M
 ```
