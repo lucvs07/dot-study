@@ -4,11 +4,14 @@
 
 ## Sobre o projeto
 
-Quem estuda sozinho tem dificuldade em manter consistência e motivação. O dot.study transforma cada sessão de estudo (assunto → tema → pomodoro → anotações → artigo) em um ciclo com foco, registro, compartilhamento com a comunidade e recompensa (moedas + ranking + customização do personagem "dot").
+Quem estuda sozinho tem dificuldade em manter consistência e motivação. O dot.study transforma cada sessão de estudo (assunto → tema → pomodoro → anotações → post) em um ciclo com foco, registro, compartilhamento com a comunidade e recompensa (moedas + ranking + customização do personagem "dot").
 
 ## Stack
 
-React (frontend) + Node/Express (backend). Dados mockados nesta fase — API e persistência real entram no CP6.
+- **Frontend:** Vite + React 18 + TypeScript + Tailwind CSS, com TanStack Query para estado de servidor.
+- **Dados (CP5):** mockados no navegador — `localStorage` (usuários, sessões, posts, moedas) e IndexedDB (arquivos de áudio/vídeo gravados). Nenhum dado sai do navegador nesta fase.
+- **Backend (CP6):** Express + TypeScript + Prisma + PostgreSQL — troca o mock pela API real sem reescrever telas, via `services/contracts.ts`.
+- **Spotify:** embed (iFrame API) com playlists de foco curadas para todos, mais conexão opcional (OAuth PKCE) com a conta do usuário.
 
 ## Estrutura do repositório
 
@@ -17,23 +20,87 @@ dot-study/
 ├── README.md
 ├── brainstorming-dot-study.txt  # anotações iniciais da ideia
 ├── docs/                        # documentação do projeto (ver seção abaixo)
-├── frontend/                    # React — código entra no CP5
-├── backend/                     # Node/Express — código entra no CP5
+├── frontend/                    # Vite + React + TS — app do CP5/CP6
+│   ├── src/
+│   │   ├── app/                 # rotas, providers, layout
+│   │   ├── pages/                # telas
+│   │   ├── components/           # componentes reutilizáveis
+│   │   ├── services/              # contracts.ts + implementação mock (CP5) / api (CP6)
+│   │   ├── spotify/               # PKCE, API e controlador do embed do Spotify
+│   │   ├── hooks/                  # useAuth, useCountdown, useMediaRecorder, ...
+│   │   └── domain/                  # regras de pontuação, marca, formatação
+│   ├── vercel.json
+│   └── .env.example
+├── backend/                      # Express + Prisma — entra no CP6
 └── .gitignore
+```
+
+## Como acessar o CP5
+
+- **URL publicada:** `<URL do CP5>`
+- **Conta de demonstração:** `demo@dotstudy.app` / `dotstudy123`
+- Ou crie uma conta nova pelo cadastro (ganha 250 moedas de boas-vindas).
+
+> No CP5 os dados ficam salvos apenas no seu navegador (`localStorage`/IndexedDB), sem backend. Se quiser recomeçar do zero, use o botão **"Restaurar dados de demonstração"** em Ajustes.
+
+> **Tempo de um desafio completo:** no modo normal, a menor dificuldade é de 15 minutos de foco, então o fluxo inteiro (estudar → publicar → aparecer no ranking) leva **pelo menos 15 minutos**. Para a avaliação, recomendamos que a equipe ligue `VITE_DEMO_MODE=true` nas variáveis de ambiente do projeto do CP5 na Vercel: isso libera a dificuldade "Demo" (1 minuto). Para ver a loja e o feed já populados, use a conta de demonstração acima (840 moedas, posts e ranking de exemplo).
+
+### Deploy (Vercel)
+
+- **Root Directory:** `frontend` (o `vercel.json` com o fallback de SPA fica nessa pasta).
+- **Variáveis de ambiente:** `VITE_DATA_SOURCE=mock`, `VITE_DEMO_MODE=true` (recomendado para a avaliação) e, opcionalmente, `VITE_SPOTIFY_CLIENT_ID`.
+
+## Como rodar localmente
+
+Pré-requisito: Node.js ≥ 20.
+
+```bash
+npm install
+npm run dev
+```
+
+Abra `http://127.0.0.1:5173`. O servidor de desenvolvimento fica em `127.0.0.1` (não `localhost`) porque o Spotify não aceita `localhost` como redirect URI do OAuth, e o callback de conexão usa `location.origin` (ver `frontend/vite.config.ts`).
+
+Para gravar vídeos com sessões curtas, ligue o modo demo (dificuldade "Demo" de 1 minuto). Funciona em qualquer sistema operacional (usa `frontend/.env.demo`):
+
+```bash
+npm run dev:demo
+```
+
+### Testar "Conectar Spotify" localmente
+
+Sem configuração, o player mostra só as playlists curadas do dot.study (não precisa de conta). Para testar a conexão com a conta do usuário:
+
+1. Crie um app no [Spotify Developer Dashboard](https://developer.spotify.com/dashboard). Em modo desenvolvedor, o dono do app precisa ter Spotify Premium e só até 5 usuários cadastrados na allowlist do app conseguem conectar.
+2. Cadastre a redirect URI `http://127.0.0.1:5173/spotify/callback`.
+3. Crie `frontend/.env.local` com o Client ID (público, sem segredo — o fluxo é PKCE):
+
+   ```bash
+   VITE_SPOTIFY_CLIENT_ID=<seu client id>
+   ```
+
+4. Reinicie o `npm run dev` e abra `http://127.0.0.1:5173`. O botão "Conectar Spotify" aparece no menu de playlists do player.
+
+Outros comandos úteis (raiz do repositório):
+
+```bash
+npm test        # testes (Vitest)
+npm run lint    # ESLint + Prettier
+npm run build   # build de produção
 ```
 
 ## Equipe
 
-Papéis definidos de forma ágil pelo próprio grupo, com base no que cada pessoa executou neste checkpoint (CP4) e no que assume a seguir.
+Papéis definidos de forma ágil pelo próprio grupo, com base no que cada pessoa executou em cada checkpoint.
 
-| Nome | RM | Papel no CP4 | Próximas etapas |
+| Nome | RM | Papel no CP4 | Papel no CP5 |
 |---|---|---|---|
-| Lucas Rodrigues Grecco | 558261 | Scrum Master / Organização do projeto — repositório GitHub, quadro Trello e documentação inicial | Desenvolvimento Fullstack |
-| Monique Ferreira dos Anjos | 558262 | UI/UX Designer — identidade visual, marca e prototipação | Frontend e interface do projeto |
-| Tiago Brito Nário | 558248 | UI/UX — apoio à Monique no design e na prototipação | Refinamento do protótipo e implementação da interface |
-| Rafael Augusto Oliveira Silva | 555154 | UI/UX — apoio à Monique no design e na prototipação | Refinamento do protótipo e implementação da interface |
-| Felipe Wapf Fettback | 557217 | Apresentação — criação e apresentação do pitch do projeto | Desenvolvimento Fullstack (com Lucas) |
-| Leonardo Tanaka Cortez | 556781 | Apresentação — criação e apresentação do pitch do projeto | Desenvolvimento Fullstack (com Lucas) |
+| Lucas Rodrigues Grecco | 558261 | Scrum Master / Organização do projeto — repositório GitHub, quadro Trello e documentação inicial | Infra, CI, integração Spotify e documentação |
+| Monique Ferreira dos Anjos | 558262 | UI/UX Designer — identidade visual, marca e prototipação | Telas e componentes do frontend |
+| Tiago Brito Nário | 558248 | UI/UX — apoio à Monique no design e na prototipação | Telas e componentes do frontend |
+| Rafael Augusto Oliveira Silva | 555154 | UI/UX — apoio à Monique no design e na prototipação | Telas e componentes do frontend |
+| Felipe Wapf Fettback | 557217 | Apresentação — criação e apresentação do pitch do projeto | Camada de serviços mock e regras de negócio |
+| Leonardo Tanaka Cortez | 556781 | Apresentação — criação e apresentação do pitch do projeto | Camada de serviços mock e regras de negócio |
 
 ## Documentação
 
@@ -44,7 +111,10 @@ Papéis definidos de forma ágil pelo próprio grupo, com base no que cada pesso
 - [Identidade Visual](docs/05-marca.md)
 - [Pitch e Vídeo de Apresentação](docs/06-pitch.md)
 - [Estrutura do Trello](docs/07-trello.md)
+- [Jornada do Projeto](docs/08-jornada.md)
+- [Roteiros de Vídeo](docs/11-roteiros-video.md)
 - [Spec completa do CP4](docs/superpowers/specs/2026-08-11-dot-study-cp4-design.md)
+- [Spec completa do CP5/CP6](docs/superpowers/specs/2026-09-29-dot-study-cp5-cp6-design.md)
 
 ## Links do projeto
 
@@ -56,4 +126,4 @@ Papéis definidos de forma ágil pelo próprio grupo, com base no que cada pesso
 
 ## Status do projeto
 
-**CP4 — Idealização** (em andamento). Próximo passo: CP5 — Protótipo Funcional com dados mockados.
+**CP5 — Protótipo funcional (dados mockados)**. Próximo passo: CP6 — API real, banco Postgres, upload de mídia real e deploy instalável via Docker Compose.
