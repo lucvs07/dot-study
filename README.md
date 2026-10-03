@@ -57,8 +57,8 @@ dot-study/
 
 ## Como acessar
 
-- **URL do CP5 (protótipo, dados mockados):** `<URL do CP5>`
-- **URL do CP6 (entrega final, API real):** `<URL do CP6>`
+- **URL do CP5 (protótipo, dados mockados):** https://dot-study-cp5.vercel.app
+- **URL do CP6 (entrega final, API real):** https://dot-study-final.vercel.app
 - **Conta de demonstração (válida nos dois):** `demo@dotstudy.app` / `dotstudy123`
 - Ou crie uma conta nova pelo cadastro (ganha 250 moedas de boas-vindas).
 

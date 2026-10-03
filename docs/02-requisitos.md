@@ -47,7 +47,7 @@ Pontuação do usuário no assunto = `10 × ciclos concluídos no assunto + 30 �
 | RNF03 | Frontend organizado em componentes reutilizáveis (React), preparando evolução para CP5/CP6 |
 | RNF04 | Cumprido: `services/contracts.ts` define o contrato de dados; a implementação mock (`services/mock/`) é trocável pela implementação real (CP6) via `VITE_DATA_SOURCE` |
 | RNF05 | Identidade visual (paleta, tipografia, mascote) aplicada de forma consistente entre todas as telas |
-| RNF06 | Aplicação hospedada em serviço gratuito de deploy, acessível publicamente a partir do CP5 — URL do protótipo (CP5): `<URL do CP5>`; URL final (CP6, frontend Vercel + API Render): `<URL do CP6>` |
+| RNF06 | Aplicação hospedada em serviço gratuito de deploy, acessível publicamente a partir do CP5 — URL do protótipo (CP5): https://dot-study-cp5.vercel.app; URL final (CP6, frontend Vercel + API Render): https://dot-study-final.vercel.app (API: https://dot-study-api.onrender.com) |
 | RNF07 | Timer preciso mesmo com a aba em segundo plano |
 | RNF08 | Mensagens de erro em português em todos os fluxos |
 | RNF09 | Dados persistidos em PostgreSQL com transações nas operações que envolvem moedas |
