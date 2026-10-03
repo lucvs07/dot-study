@@ -15,7 +15,9 @@ export function createApiMediaService(http: HttpClient): MediaService {
       const form = new FormData();
       form.append("kind", kind);
       form.append("durationSec", String(durationSec));
-      form.append("file", blob, `gravacao.${extensionOf(blob.type)}`);
+      // Sem os parâmetros (ex.: ";codecs=vp9,opus"): o multer não entende a vírgula sem aspas e trocaria por text/plain.
+      const file = new File([blob], `gravacao.${extensionOf(blob.type)}`, { type: blob.type.split(";")[0].trim() });
+      form.append("file", file);
       return http.request<{ url: string; durationSec: number }>("POST", "/uploads", { form });
     },
     async resolveUrl(url) {

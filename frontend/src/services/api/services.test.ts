@@ -79,6 +79,14 @@ describe("serviços api: sessões, posts, ranking, loja, mídia", () => {
     );
   });
 
+  it("mídia: envia o tipo sem parâmetros (o multer não lê codecs=vp9,opus e trocaria por text/plain)", async () => {
+    const { services, fetchFn } = setup({ url: "/media/v.webm", durationSec: 5 });
+    await services.media.upload(new Blob(["v"], { type: "video/webm;codecs=vp9,opus" }), "video", 5);
+    const file = ((fetchFn.mock.calls[0][1] as RequestInit).body as FormData).get("file") as File;
+    expect(file.type).toBe("video/webm");
+    expect(file.name).toBe("gravacao.webm");
+  });
+
   it("não expõe resetDemoData (só existe no mock)", () => {
     expect("resetDemoData" in setup().services).toBe(false);
   });
