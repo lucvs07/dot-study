@@ -12,6 +12,8 @@ Não é preciso instalar Node.js, Postgres nem nada além do Docker para o camin
 
 ## 2. Instalar e rodar (caminho principal)
 
+> Vídeo com a instalação completa, do clone ao login: https://youtu.be/qbrGxbrob1g
+
 ```bash
 git clone https://github.com/lucvs07/dot-study.git
 cd dot-study

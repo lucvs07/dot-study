@@ -146,8 +146,9 @@ Papéis definidos de forma ágil pelo próprio grupo, com base no que cada pesso
 - [Protótipo de Alta Fidelidade no Figma Make](https://www.figma.com/make/yYRigvDsBLT0La7L5dXqwb/Interface-prototipa%C3%A7%C3%A3o-.study?t=i7rLvIxYVgJh6atv-1)
 - [Vídeo — Apresentação do Projeto e Protótipo](https://youtu.be/0dKmLjSZ75s)
 - [Vídeo — Pitch de Apresentação](https://youtu.be/lNhCYMHLotU)
-- [Vídeo — CP5 (protótipo)](<URL do vídeo CP5>)
-- [Vídeo — CP6 (entrega final)](<URL do vídeo CP6>)
+- [Vídeo — Apresentação do protótipo (CP5)](https://youtu.be/ZV2G47RGLp8)
+- [Vídeo — Apresentação final (CP6)](https://youtu.be/j8xvDaAmdKM)
+- [Vídeo — Instalação local com Docker Compose](https://youtu.be/qbrGxbrob1g)
 
 ## Status do projeto
 
