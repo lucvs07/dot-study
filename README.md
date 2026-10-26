@@ -1,5 +1,9 @@
 # dot.study
 
+<!-- portfolio:pt -->
+Plataforma gamificada de estudos: sessões com pomodoro viram anotações e posts compartilhados com a comunidade, recompensados com moedas, ranking e customização do personagem. React, Express, Prisma e PostgreSQL.
+<!-- /portfolio:pt -->
+
 > Plataforma gamificada de estudos que recompensa quem transforma sessões de estudo solo em conhecimento compartilhado.
 
 ## Sobre o projeto
